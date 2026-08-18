@@ -1,0 +1,789 @@
+.hasta-panel-sayfa {
+    min-height: 100vh;
+    display: flex;
+    background: #f3f6fb;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.hasta-menu {
+    width: 260px;
+    background: #1f3c88;
+    color: white;
+    padding: 22px 16px;
+    transition: 0.3s;
+    overflow: hidden;
+}
+
+.menu-baslik {
+    margin-bottom: 35px;
+    white-space: nowrap;
+}
+
+.menu-baslik h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.menu-baslik span {
+    font-size: 13px;
+    opacity: 0.8;
+}
+
+.menu-linkler {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.menu-btn {
+    width: 100%;
+    margin-top: 0;
+    border: none;
+    background: transparent;
+    color: white;
+    padding: 13px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+.menu-btn:hover,
+.menu-btn.aktif {
+    background: rgba(255, 255, 255, 0.18);
+    transform: none;
+    box-shadow: none;
+}
+
+.menu-icon {
+    font-size: 18px;
+    min-width: 24px;
+    text-align: center;
+}
+
+.menu-kapali .hasta-menu {
+    width: 82px;
+}
+
+.menu-kapali .menu-baslik h2,
+.menu-kapali .menu-baslik span,
+.menu-kapali .menu-yazi {
+    display: none;
+}
+
+.menu-kapali .menu-btn {
+    justify-content: center;
+}
+
+.hasta-ana-alan {
+    flex: 1;
+    padding: 24px 30px;
+}
+
+.hasta-ust-bar {
+    height: 70px;
+    min-height: 70px;
+    background: white;
+    border-radius: 18px;
+    padding: 0 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    margin-bottom: 24px;
+}
+
+.ust-sol {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ust-sol h1 {
+    margin: 0;
+    padding: 0;
+    color: #1f3c88;
+    font-size: 26px;
+    line-height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.menu-ac-kapat {
+    width: 42px !important;
+    min-width: 42px;
+    height: 42px;
+    margin: 0 !important;
+    padding: 0;
+    border: none;
+    background: #eef3ff;
+    color: #1f3c88;
+    border-radius: 12px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    box-shadow: none;
+}
+
+.menu-ac-kapat:hover {
+    background: #dde8ff;
+    transform: none;
+    box-shadow: none;
+}
+
+.profil-alani {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.profil-buton {
+    width: auto !important;
+    height: 42px;
+    margin: 0 !important;
+    padding: 0 14px;
+    border: none;
+    background: #eef3ff;
+    color: #1f3c88;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    cursor: pointer;
+    font-weight: 600;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.profil-buton:hover {
+    background: #dde8ff;
+    transform: none;
+    box-shadow: none;
+}
+
+.profil-avatar {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    background: #1f3c88;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-weight: bold;
+}
+
+.profil-buton span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.profil-ok {
+    width: 14px;
+    height: 14px;
+    font-size: 13px;
+    margin-left: 2px;
+    transform: translateY(-1px);
+}
+
+.profil-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 55px;
+    width: 190px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    z-index: 10;
+}
+
+.profil-menu-aktif {
+    display: block;
+}
+
+.profil-menu button,
+.profil-menu a {
+    width: 100%;
+    display: block;
+    margin-top: 0;
+    padding: 14px 16px;
+    border: none;
+    background: white;
+    color: #333;
+    text-align: left;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: none;
+    transform: none;
+}
+
+.profil-menu button:hover,
+.profil-menu a:hover {
+    background: #f3f6fb;
+    transform: none;
+    box-shadow: none;
+    text-decoration: none;
+}
+
+.icerik-kutusu {
+    display: none;
+}
+
+.aktif-icerik {
+    display: block;
+}
+
+.hosgeldin-karti,
+.form-karti {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.hosgeldin-karti h2,
+.form-karti h2 {
+    margin-top: 0;
+    color: #1f3c88;
+}
+
+.hosgeldin-karti p,
+.form-karti p {
+    color: #333;
+}
+
+.ozet-kartlar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 24px;
+}
+
+.ozet-kart,
+.randevu-kart,
+.profil-kart {
+    background: white;
+    border: 1px solid #dce6f7;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.ozet-kart h3,
+.randevu-kart h3 {
+    margin-top: 0;
+    color: #1f3c88;
+}
+
+.panel-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 460px;
+    margin-top: 20px;
+}
+
+.panel-form label {
+    font-weight: 600;
+    color: #333;
+}
+
+.panel-form input,
+.panel-form select,
+.panel-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccd6e0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+}
+
+.panel-form textarea {
+    min-height: 95px;
+    resize: vertical;
+}
+
+.panel-form input:focus,
+.panel-form select:focus,
+.panel-form textarea:focus {
+    border-color: #1f3c88;
+}
+
+.panel-form select {
+    height: 46px;
+    padding: 0 42px 0 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10L12 15L17 10' stroke='%231f3c88' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: calc(100% - 15px) center;
+}
+
+.panel-form input[type="date"] {
+    height: 46px;
+    padding: 0 14px;
+}
+
+.panel-form input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 16px;
+    height: 16px;
+    margin-right: 1px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.panel-form button {
+    margin-top: 10px;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: #1f3c88;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.panel-form button:hover {
+    background: #162f6c;
+    transform: none;
+}
+
+.randevu-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 650px;
+    margin-top: 18px;
+}
+
+.randevu-kart {
+    max-width: 500px;
+    margin-top: 18px;
+}
+
+.randevu-ust {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.randevu-ust h3 {
+    margin-bottom: 10px;
+}
+
+.durum {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.aktif-durum {
+    background: #d4f8dc;
+    color: #1f8f3a;
+}
+
+.iptal-durum {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.iptal-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 11px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.iptal-btn:hover {
+    background: #c0392b;
+    transform: none;
+}
+
+.bekleme-cik-btn {
+    width: auto;
+    margin-top: 0;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #f59e0b;
+    color: white;
+    cursor: pointer;
+}
+
+.bekleme-cik-btn:hover {
+    background: #d97706;
+    transform: none;
+}
+
+.randevu-aksiyon-form {
+    margin-top: 14px;
+}
+
+.randevu-aksiyon-form .iptal-btn,
+.randevu-aksiyon-form .bekleme-cik-btn {
+    width: auto;
+    margin-top: 0;
+}
+
+.bos-bilgi {
+    max-width: 500px;
+    margin-top: 18px;
+    text-align: left;
+    background: #f8fbff;
+    border: 1px solid #dbeafe;
+    border-radius: 14px;
+    padding: 16px;
+    color: #4b5563;
+}
+
+.liste-blok {
+    margin-top: 26px;
+}
+
+.liste-baslik {
+    color: #1f3c88;
+    font-size: 19px;
+    margin: 0 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dbeafe;
+}
+
+.aciklama-metni {
+    text-align: left;
+    color: #4b5563;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.profil-kart {
+    max-width: 500px;
+    margin-top: 18px;
+}
+
+.profil-kart p {
+    margin: 12px 0;
+}
+
+.profil-duzenleme-alani {
+    margin-top: 28px;
+    max-width: 520px;
+}
+
+.sifre-ayrac {
+    margin-top: 18px;
+    padding: 14px;
+    background: #f8fbff;
+    border: 1px solid #dbeafe;
+    border-radius: 12px;
+}
+
+.sifre-ayrac h4 {
+    color: #1f3c88;
+    margin: 0 0 8px 0;
+    font-size: 16px;
+}
+
+.sifre-ayrac p {
+    text-align: left;
+    margin: 0;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.sifre-kural-bilgi {
+    margin-top: 4px;
+    padding: 11px 12px;
+    background: #eef6ff;
+    color: #1f3c88;
+    border: 1px solid #dbeafe;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.uyari-arkaplan {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.uyari-arkaplan.uyari-aktif {
+    display: flex;
+}
+
+.uyari-kutu {
+    width: 360px;
+    max-width: 90%;
+    background: white;
+    border-radius: 20px;
+    padding: 30px 26px;
+    text-align: center;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    animation: uyariAcil 0.25s ease;
+}
+
+@keyframes uyariAcil {
+    from {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.uyari-ikon {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    margin: 0 auto 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: white;
+}
+
+.basari-uyari .uyari-ikon {
+    background: #16a34a;
+}
+
+.hata-uyari .uyari-ikon {
+    background: #dc2626;
+}
+
+.uyari-kutu h3 {
+    margin: 0 0 10px 0;
+    color: #1f2937;
+    font-size: 22px;
+}
+
+.uyari-kutu p {
+    margin: 0;
+    color: #4b5563;
+    font-size: 15px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.uyari-tamam {
+    width: auto;
+    min-width: 120px;
+    margin-top: 22px;
+    padding: 11px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #1f3c88;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.uyari-tamam:hover {
+    background: #162f6c;
+    transform: none;
+}
+
+.hasta-yogunluk-filtre-form {
+    max-width: 260px;
+}
+
+.hasta-yogunluk-filtre-form button {
+    width: auto;
+    align-self: flex-start;
+    padding: 12px 18px;
+}
+
+.hasta-secili-tarih-bilgi {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+    color: #1e3a8a;
+    font-size: 14px;
+}
+
+.hasta-yogunluk-rapor-alani {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-top: 24px;
+}
+
+.hasta-yogunluk-rapor-kart {
+    background: #ffffff;
+    border: 1px solid #dce6f7;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.hasta-yogunluk-rapor-ust {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.hasta-yogunluk-rapor-ust h3 {
+    margin: 0;
+    color: #1f3c88;
+}
+
+.hasta-yogunluk-rapor-kart p {
+    text-align: left;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.hasta-yogunluk-etiket {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.hasta-yogunluk-dusuk {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.hasta-yogunluk-orta {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.hasta-yogunluk-yuksek {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.hasta-yogunluk-cubuk {
+    width: 100%;
+    height: 9px;
+    margin-top: 14px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.hasta-yogunluk-cubuk span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: #1f78b4;
+}
+
+.hasta-cubuk-dusuk span {
+    width: 30%;
+    background: #22c55e;
+}
+
+.hasta-cubuk-orta span {
+    width: 65%;
+    background: #f59e0b;
+}
+
+.hasta-cubuk-yuksek span {
+    width: 90%;
+    background: #dc2626;
+}
+
+@media (max-width: 900px) {
+    .hasta-panel-sayfa {
+        flex-direction: column;
+    }
+
+    .hasta-menu {
+        width: auto;
+    }
+
+    .menu-kapali .hasta-menu {
+        width: auto;
+    }
+
+    .menu-kapali .menu-baslik h2,
+    .menu-kapali .menu-baslik span,
+    .menu-kapali .menu-yazi {
+        display: inline;
+    }
+
+    .menu-kapali .menu-btn {
+        justify-content: flex-start;
+    }
+
+    .hasta-ana-alan {
+        padding: 18px;
+    }
+
+    .hasta-ust-bar {
+        height: auto;
+        min-height: 70px;
+        padding: 16px;
+        gap: 15px;
+    }
+
+    .ust-sol h1 {
+        font-size: 22px;
+    }
+
+    .ozet-kartlar,
+    .hasta-yogunluk-rapor-alani {
+        grid-template-columns: 1fr;
+    }
+
+    .profil-ad {
+        display: none;
+    }
+
+    .hasta-yogunluk-filtre-form button {
+        width: 100%;
+    }
+}

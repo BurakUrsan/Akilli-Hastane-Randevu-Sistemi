@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasta Paneli</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='hasta.css') }}">
+</head>
+<body>
+
+<div class="hasta-panel-sayfa" id="hastaPanel" data-aktif-bolum="{{ aktif_bolum }}">
+
+    <aside class="hasta-menu">
+        <div class="menu-baslik">
+            <h2>Hasta Giriş</h2>
+            <span>Randevu Sistemi</span>
+        </div>
+
+        <div class="menu-linkler">
+            <button type="button" data-bolum="anasayfa" class="menu-btn {% if aktif_bolum == 'anasayfa' %}aktif{% endif %}" onclick="icerikGoster('anasayfa', this)">
+                <span class="menu-icon">🏠</span>
+                <span class="menu-yazi">Ana Sayfa</span>
+            </button>
+
+            <button type="button" data-bolum="randevu-al" class="menu-btn {% if aktif_bolum == 'randevu-al' %}aktif{% endif %}" onclick="icerikGoster('randevu-al', this)">
+                <span class="menu-icon">📅</span>
+                <span class="menu-yazi">Randevu Al</span>
+            </button>
+
+            <button type="button" data-bolum="randevularim" class="menu-btn {% if aktif_bolum == 'randevularim' %}aktif{% endif %}" onclick="icerikGoster('randevularim', this)">
+                <span class="menu-icon">📋</span>
+                <span class="menu-yazi">Randevularım</span>
+            </button>
+
+            <button type="button" data-bolum="iptal" class="menu-btn {% if aktif_bolum == 'iptal' %}aktif{% endif %}" onclick="icerikGoster('iptal', this)">
+                <span class="menu-icon">❌</span>
+                <span class="menu-yazi">Randevu İptal Et</span>
+            </button>
+
+            <button type="button" data-bolum="bekleme" class="menu-btn {% if aktif_bolum == 'bekleme' %}aktif{% endif %}" onclick="icerikGoster('bekleme', this)">
+                <span class="menu-icon">⏳</span>
+                <span class="menu-yazi">Bekleme Listesi</span>
+            </button>
+
+            <button type="button" data-bolum="yogunluk" class="menu-btn {% if aktif_bolum == 'yogunluk' %}aktif{% endif %}" onclick="icerikGoster('yogunluk', this)">
+                <span class="menu-icon">📊</span>
+                <span class="menu-yazi">Yoğunluk Görüntüle</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="hasta-ana-alan">
+
+        <header class="hasta-ust-bar">
+            <div class="ust-sol">
+                <button type="button" class="menu-ac-kapat" onclick="menuAcKapat()">☰</button>
+                <h1 id="sayfaBaslik">Ana Sayfa</h1>
+            </div>
+
+            <div class="profil-alani">
+                <button type="button" class="profil-buton" onclick="profilMenuAcKapat()">
+                    <span class="profil-avatar">
+                        {{ kullanici.ad[0] if kullanici and kullanici.ad else "H" }}
+                    </span>
+                    <span class="profil-ad">
+                        {{ kullanici.ad if kullanici else "Hasta" }}
+                    </span>
+                    <span class="profil-ok">▾</span>
+                </button>
+
+                <div class="profil-menu" id="profilMenu">
+                    <button type="button" onclick="icerikGoster('profil', null); profilMenuAcKapat();">
+                        Profil Bilgilerim
+                    </button>
+                    <a href="{{ url_for('cikis') }}">Çıkış Yap</a>
+                </div>
+            </div>
+        </header>
+
+        <div id="flashMesajAlani" style="display: none;">
+            {% with mesajlar = get_flashed_messages(with_categories=true) %}
+                {% if mesajlar %}
+                    {% for kategori, mesaj in mesajlar %}
+                        <span class="flash-mesaj" data-kategori="{{ kategori }}" data-mesaj="{{ mesaj|e }}"></span>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="uyari-arkaplan" id="uyariKutusu">
+            <div class="uyari-kutu">
+                <div class="uyari-ikon" id="uyariIkon">✓</div>
+                <h3 id="uyariBaslik">İşlem Başarılı</h3>
+                <p id="uyariMetni"></p>
+                <button type="button" class="uyari-tamam" onclick="uyariKapat()">Tamam</button>
+            </div>
+        </div>
+
+        <section id="anasayfa" class="icerik-kutusu {% if aktif_bolum == 'anasayfa' %}aktif-icerik{% endif %}">
+            <div class="hosgeldin-karti">
+                <h2>Hoş Geldiniz</h2>
+                <p>Hasta panelinden randevu alabilir, mevcut randevularınızı görüntüleyebilir ve bekleme listesine katılabilirsiniz.</p>
+            </div>
+
+            <div class="ozet-kartlar">
+                <div class="ozet-kart">
+                    <h3>Aktif Randevu</h3>
+
+                    {% if aktif_randevular %}
+                        <p>
+                            {{ aktif_randevular[0].poliklinik }} -
+                            {{ aktif_randevular[0].tarih_goster }}
+                            {{ aktif_randevular[0].saat }}
+                        </p>
+                    {% else %}
+                        <p>Henüz aktif randevu bulunmuyor.</p>
+                    {% endif %}
+                </div>
+
+                <div class="ozet-kart">
+                    <h3>Bekleme Listesi</h3>
+
+                    {% set aktif_bekleme = bekleme_kayitlari | selectattr("durum", "equalto", "Aktif") | list %}
+
+                    {% if aktif_bekleme %}
+                        <p>{{ aktif_bekleme|length }} aktif bekleme kaydınız bulunmaktadır.</p>
+                    {% else %}
+                        <p>Aktif bekleme listesi kaydınız bulunmuyor.</p>
+                    {% endif %}
+                </div>
+
+                <div class="ozet-kart">
+                    <h3>Yoğunluk Durumu</h3>
+
+                    {% if hasta_bugun_yuksek_yogunluk_sayisi > 0 %}
+                        <p>Bugün {{ hasta_bugun_yuksek_yogunluk_sayisi }} poliklinikte yüksek yoğunluk bulunmaktadır.</p>
+                    {% elif hasta_bugun_orta_yogunluk_sayisi > 0 %}
+                        <p>Bugün {{ hasta_bugun_orta_yogunluk_sayisi }} poliklinikte orta yoğunluk bulunmaktadır.</p>
+                    {% else %}
+                        <p>Bugün genel yoğunluk düşük seviyededir.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section id="randevu-al" class="icerik-kutusu {% if aktif_bolum == 'randevu-al' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Randevu Al</h2>
+
+                <form class="panel-form" method="POST" action="{{ url_for('randevu_olustur') }}" id="randevuFormu" data-dolu-saatler-url="{{ url_for('dolu_saatler') }}">
+                    <label for="poliklinikSecimi">Poliklinik Seçiniz</label>
+                    <select name="poliklinik" id="poliklinikSecimi" required>
+                        <option value="">Poliklinik seçiniz</option>
+                        <option value="Dahiliye">Dahiliye</option>
+                        <option value="Kardiyoloji">Kardiyoloji</option>
+                        <option value="Göz Hastalıkları">Göz Hastalıkları</option>
+                        <option value="Ortopedi">Ortopedi</option>
+                        <option value="Dermatoloji">Dermatoloji</option>
+                    </select>
+
+                    <label for="doktorSecimi">Doktor Seçiniz</label>
+                    <select name="doktor" id="doktorSecimi" required>
+                        <option value="">Önce poliklinik seçiniz</option>
+
+                        {% for doktor in hasta_panel_doktorlar %}
+                            <option value="{{ doktor.doktor_adi }}" data-brans="{{ doktor.brans }}">
+                                {{ doktor.doktor_adi }} - {{ doktor.brans }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="tarihSecimi">Randevu Tarihi</label>
+                    <input type="date" name="tarih" id="tarihSecimi" min="{{ bugun }}" required>
+
+                    <label for="saatSecimi">Randevu Saati</label>
+                    <select name="saat" id="saatSecimi" required>
+                        <option value="">
+                            Önce doktor ve tarih seçiniz
+                        </option>
+                    </select>
+
+                    <label for="hasta_notu">Randevu Notu / Şikayet Açıklaması</label>
+                    <textarea
+                        id="hasta_notu"
+                        name="hasta_notu"
+                        maxlength="500"
+                        placeholder="Şikayetinizi veya doktora iletmek istediğiniz kısa açıklamayı yazabilirsiniz. Bu alan isteğe bağlıdır."></textarea>
+
+                    <button type="submit">Randevu Oluştur</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="randevularim" class="icerik-kutusu {% if aktif_bolum == 'randevularim' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Randevularım</h2>
+
+                <div class="liste-blok">
+                    <h3 class="liste-baslik">Aktif Randevular</h3>
+
+                    {% if aktif_randevular %}
+                        <div class="randevu-liste">
+                            {% for randevu in aktif_randevular %}
+                                <div class="randevu-kart">
+                                    <div class="randevu-ust">
+                                        <h3>{{ randevu.poliklinik }}</h3>
+                                        <span class="durum aktif-durum">Aktif</span>
+                                    </div>
+
+                                    <p><strong>Doktor:</strong> {{ randevu.doktor }}</p>
+                                    <p><strong>Tarih:</strong> {{ randevu.tarih_goster }}</p>
+                                    <p><strong>Saat:</strong> {{ randevu.saat }}</p>
+
+                                    {% if randevu.hasta_notu %}
+                                        <p><strong>Randevu Notu:</strong> {{ randevu.hasta_notu }}</p>
+                                    {% else %}
+                                        <p><strong>Randevu Notu:</strong> Not eklenmedi.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="bos-bilgi">Aktif randevunuz bulunmamaktadır.</p>
+                    {% endif %}
+                </div>
+
+                <div class="liste-blok">
+                    <h3 class="liste-baslik">İptal Edilen Randevular</h3>
+
+                    {% if iptal_randevular %}
+                        <div class="randevu-liste">
+                            {% for randevu in iptal_randevular %}
+                                <div class="randevu-kart">
+                                    <div class="randevu-ust">
+                                        <h3>{{ randevu.poliklinik }}</h3>
+                                        <span class="durum iptal-durum">İptal Edildi</span>
+                                    </div>
+
+                                    <p><strong>Doktor:</strong> {{ randevu.doktor }}</p>
+                                    <p><strong>Tarih:</strong> {{ randevu.tarih_goster }}</p>
+                                    <p><strong>Saat:</strong> {{ randevu.saat }}</p>
+
+                                    {% if randevu.hasta_notu %}
+                                        <p><strong>Randevu Notu:</strong> {{ randevu.hasta_notu }}</p>
+                                    {% else %}
+                                        <p><strong>Randevu Notu:</strong> Not eklenmedi.</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="bos-bilgi">İptal edilmiş randevunuz bulunmamaktadır.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section id="iptal" class="icerik-kutusu {% if aktif_bolum == 'iptal' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Randevu İptal Et</h2>
+
+                {% if aktif_randevular %}
+                    <div class="randevu-liste">
+                        {% for randevu in aktif_randevular %}
+                            <div class="randevu-kart">
+                                <h3>{{ randevu.poliklinik }} Randevusu</h3>
+                                <p><strong>Doktor:</strong> {{ randevu.doktor }}</p>
+                                <p><strong>Tarih:</strong> {{ randevu.tarih_goster }}</p>
+                                <p><strong>Saat:</strong> {{ randevu.saat }}</p>
+
+                                {% if randevu.hasta_notu %}
+                                    <p><strong>Randevu Notu:</strong> {{ randevu.hasta_notu }}</p>
+                                {% else %}
+                                    <p><strong>Randevu Notu:</strong> Not eklenmedi.</p>
+                                {% endif %}
+
+                                <form method="POST" action="{{ url_for('randevu_iptal', randevu_id=randevu.id) }}" class="randevu-aksiyon-form">
+                                    <button type="submit" class="iptal-btn">Randevuyu İptal Et</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="bos-bilgi">İptal edilebilecek aktif randevunuz bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="bekleme" class="icerik-kutusu {% if aktif_bolum == 'bekleme' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Bekleme Listesi</h2>
+                <p class="aciklama-metni">Bekleme listesine yalnızca dolu olan randevu saatleri için katılabilirsiniz.</p>
+
+                <form class="panel-form" method="POST" action="{{ url_for('bekleme_listesine_katil') }}" id="beklemeFormu" data-dolu-saatler-url="{{ url_for('dolu_saatler') }}">
+                    <label for="beklemePoliklinikSecimi">Poliklinik Seçiniz</label>
+                    <select name="poliklinik" id="beklemePoliklinikSecimi" required>
+                        <option value="">Poliklinik seçiniz</option>
+                        <option value="Dahiliye">Dahiliye</option>
+                        <option value="Kardiyoloji">Kardiyoloji</option>
+                        <option value="Göz Hastalıkları">Göz Hastalıkları</option>
+                        <option value="Ortopedi">Ortopedi</option>
+                        <option value="Dermatoloji">Dermatoloji</option>
+                    </select>
+
+                    <label for="beklemeDoktorSecimi">Doktor Seçiniz</label>
+                    <select name="doktor" id="beklemeDoktorSecimi" required>
+                        <option value="">Önce poliklinik seçiniz</option>
+
+                        {% for doktor in hasta_panel_doktorlar %}
+                            <option value="{{ doktor.doktor_adi }}" data-brans="{{ doktor.brans }}">
+                                {{ doktor.doktor_adi }} - {{ doktor.brans }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="beklemeTarihSecimi">Tarih Seçiniz</label>
+                    <input type="date" name="tarih" id="beklemeTarihSecimi" min="{{ bugun }}" required>
+
+                    <label for="beklemeSaatSecimi">Dolu Randevu Saati</label>
+                    <select name="saat" id="beklemeSaatSecimi" required>
+                        <option value="">Önce doktor ve tarih seçiniz</option>
+                    </select>
+
+                    <button type="submit">Bekleme Listesine Katıl</button>
+                </form>
+
+                <div class="liste-blok">
+                    <h3 class="liste-baslik">Bekleme Listesi Kayıtlarım</h3>
+
+                    {% if bekleme_kayitlari %}
+                        <div class="randevu-liste">
+                            {% for kayit in bekleme_kayitlari %}
+                                <div class="randevu-kart">
+                                    <div class="randevu-ust">
+                                        <h3>{{ kayit.poliklinik }}</h3>
+
+                                        {% if kayit.durum == "Aktif" %}
+                                            <span class="durum aktif-durum">Aktif</span>
+
+                                        {% elif kayit.durum == "Randevu Alındı" %}
+                                            <span class="durum aktif-durum">Randevu Alındı</span>
+
+                                        {% else %}
+                                            <span class="durum iptal-durum">Listeden Çıkıldı</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <p><strong>Doktor:</strong> {{ kayit.doktor }}</p>
+                                    <p><strong>Tarih:</strong> {{ kayit.tarih_goster }}</p>
+                                    <p><strong>Saat:</strong> {{ kayit.saat }}</p>
+
+                                    {% if kayit.durum == "Aktif" %}
+                                        <form method="POST" action="{{ url_for('bekleme_listesinden_cik', kayit_id=kayit.id) }}" class="randevu-aksiyon-form">
+                                            <button type="submit" class="bekleme-cik-btn">Bekleme Listesinden Çık</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="bos-bilgi">Henüz bekleme listesi kaydınız bulunmamaktadır.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section id="yogunluk" class="icerik-kutusu {% if aktif_bolum == 'yogunluk' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Yoğunluk Görüntüle</h2>
+
+                <p class="aciklama-metni">
+                    Seçilen tarihe göre polikliniklerin aktif randevu yoğunluğunu görüntüleyebilirsiniz.
+                    3'ten az aktif randevu düşük yoğunluk, 3-5 arası aktif randevu orta yoğunluk,
+                    6 ve üzeri aktif randevu yüksek yoğunluk olarak değerlendirilir.
+                </p>
+
+                <form method="GET" action="{{ url_for('hasta_panel') }}" class="panel-form hasta-yogunluk-filtre-form">
+                    <input type="hidden" name="bolum" value="yogunluk">
+
+                    <label for="hastaYogunlukTarihi">Yoğunluk Tarihi</label>
+                    <input type="date" id="hastaYogunlukTarihi" name="yogunluk_tarihi" value="{{ hasta_yogunluk_tarihi }}" required>
+
+                    <button type="submit">Yoğunluğu Göster</button>
+                </form>
+
+                <div class="hasta-secili-tarih-bilgi">
+                    <strong>Seçilen Tarih:</strong> {{ hasta_yogunluk_tarihi_goster }}
+                </div>
+
+                <div class="hasta-yogunluk-rapor-alani">
+                    {% for rapor in hasta_yogunluk_raporlari %}
+                        <div class="hasta-yogunluk-rapor-kart">
+                            <div class="hasta-yogunluk-rapor-ust">
+                                <h3>{{ rapor.poliklinik }}</h3>
+
+                                <span class="hasta-yogunluk-etiket {{ rapor.yogunluk_class }}">
+                                    {{ rapor.yogunluk }}
+                                </span>
+                            </div>
+
+                            <p>{{ rapor.aciklama }}</p>
+
+                            <p>
+                                <strong>Aktif Randevu Sayısı:</strong>
+                                {{ rapor.aktif_randevu_sayisi }}
+                            </p>
+
+                            <div class="hasta-yogunluk-cubuk {{ rapor.cubuk_class }}">
+                                <span></span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section id="profil" class="icerik-kutusu {% if aktif_bolum == 'profil' %}aktif-icerik{% endif %}">
+            <div class="form-karti">
+                <h2>Profil Bilgilerim</h2>
+
+                <div class="profil-kart">
+                    <p><strong>Ad Soyad:</strong> {{ kullanici.ad }} {{ kullanici.soyad }}</p>
+                    <p><strong>T.C. Kimlik No:</strong> {{ kullanici_anahtar }}</p>
+                    <p><strong>Telefon:</strong> {{ kullanici.telefon }}</p>
+                    <p><strong>E-posta:</strong> {{ kullanici.email }}</p>
+                    <p><strong>Doğum Tarihi:</strong> {{ kullanici.dogum_tarihi }}</p>
+                </div>
+
+                <div class="profil-duzenleme-alani">
+                    <h3 class="liste-baslik">Bilgilerimi Düzenle</h3>
+
+                    <form class="panel-form" method="POST" action="{{ url_for('profil_guncelle') }}">
+                        <label for="profilTelefon">Telefon</label>
+                        <input type="text" name="telefon" id="profilTelefon" value="{{ kullanici.telefon }}" maxlength="14" required>
+
+                        <label for="profilEmail">E-posta</label>
+                        <input type="email" name="email" id="profilEmail" value="{{ kullanici.email }}" required>
+
+                        <div class="sifre-ayrac">
+                            <h4>Şifre Değiştir</h4>
+                            <p>Şifrenizi değiştirmek istemiyorsanız aşağıdaki şifre alanlarını boş bırakabilirsiniz.</p>
+                        </div>
+
+                        <label for="mevcutSifre">Mevcut Şifre</label>
+                        <input type="password" name="mevcut_sifre" id="mevcutSifre">
+
+                        <label for="yeniSifre">Yeni Şifre</label>
+                        <input type="password" name="yeni_sifre" id="yeniSifre">
+
+                        <label for="yeniSifreTekrar">Yeni Şifre Tekrar</label>
+                        <input type="password" name="yeni_sifre_tekrar" id="yeniSifreTekrar">
+
+                        <div class="sifre-kural-bilgi">
+                            Yeni şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve sembol içermelidir.
+                        </div>
+
+                        <button type="submit">Bilgileri Güncelle</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+function menuAcKapat() {
+    document.getElementById("hastaPanel").classList.toggle("menu-kapali");
+}
+
+function profilMenuAcKapat() {
+    document.getElementById("profilMenu").classList.toggle("profil-menu-aktif");
+}
+
+function icerikGoster(id, buton) {
+    const hedefIcerik = document.getElementById(id);
+
+    if (!hedefIcerik) {
+        return;
+    }
+
+    const icerikler = document.querySelectorAll(".icerik-kutusu");
+    const butonlar = document.querySelectorAll(".menu-btn");
+
+    icerikler.forEach(icerik => {
+        icerik.classList.remove("aktif-icerik");
+    });
+
+    butonlar.forEach(btn => {
+        btn.classList.remove("aktif");
+    });
+
+    hedefIcerik.classList.add("aktif-icerik");
+
+    if (buton !== null) {
+        buton.classList.add("aktif");
+    } else {
+        const ilgiliButon = document.querySelector(`[data-bolum="${id}"]`);
+
+        if (ilgiliButon) {
+            ilgiliButon.classList.add("aktif");
+        }
+    }
+
+    const basliklar = {
+        "anasayfa": "Ana Sayfa",
+        "randevu-al": "Randevu Al",
+        "randevularim": "Randevularım",
+        "iptal": "Randevu İptal Et",
+        "bekleme": "Bekleme Listesi",
+        "yogunluk": "Yoğunluk Görüntüle",
+        "profil": "Profil Bilgilerim"
+    };
+
+    document.getElementById("sayfaBaslik").textContent = basliklar[id] || "Ana Sayfa";
+}
+
+function uyariGoster(mesaj, kategori) {
+    const uyariKutusu = document.getElementById("uyariKutusu");
+    const uyariIkon = document.getElementById("uyariIkon");
+    const uyariBaslik = document.getElementById("uyariBaslik");
+    const uyariMetni = document.getElementById("uyariMetni");
+
+    uyariMetni.textContent = mesaj;
+
+    if (kategori === "hata") {
+        uyariKutusu.classList.add("hata-uyari");
+        uyariKutusu.classList.remove("basari-uyari");
+        uyariIkon.textContent = "!";
+        uyariBaslik.textContent = "İşlem Başarısız";
+    } else {
+        uyariKutusu.classList.add("basari-uyari");
+        uyariKutusu.classList.remove("hata-uyari");
+        uyariIkon.textContent = "✓";
+        uyariBaslik.textContent = "İşlem Başarılı";
+    }
+
+    uyariKutusu.classList.add("uyari-aktif");
+}
+
+function uyariKapat() {
+    document.getElementById("uyariKutusu").classList.remove("uyari-aktif");
+}
+
+function doktorlariBransaGoreFiltrele(poliklinikId, doktorId, saatKontrolFonksiyonu) {
+    const poliklinikSecimi = document.getElementById(poliklinikId);
+    const doktorSecimi = document.getElementById(doktorId);
+
+    if (!poliklinikSecimi || !doktorSecimi) {
+        return;
+    }
+
+    const seciliBrans = poliklinikSecimi.value;
+    const ilkOption = doktorSecimi.options[0];
+
+    doktorSecimi.value = "";
+
+    if (!seciliBrans) {
+        ilkOption.textContent = "Önce poliklinik seçiniz";
+
+        Array.from(doktorSecimi.options).forEach(function(option) {
+            if (option.value !== "") {
+                option.hidden = true;
+                option.disabled = true;
+            }
+        });
+
+        if (typeof saatKontrolFonksiyonu === "function") {
+            saatKontrolFonksiyonu();
+        }
+
+        return;
+    }
+
+    let uygunDoktorVar = false;
+    ilkOption.textContent = "Doktor seçiniz";
+
+    Array.from(doktorSecimi.options).forEach(function(option) {
+        if (option.value === "") {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+
+        const uygunMu = option.dataset.brans === seciliBrans;
+
+        option.hidden = !uygunMu;
+        option.disabled = !uygunMu;
+
+        if (uygunMu) {
+            uygunDoktorVar = true;
+        }
+    });
+
+    if (!uygunDoktorVar) {
+        ilkOption.textContent = "Bu poliklinikte aktif doktor bulunmuyor";
+    }
+
+    if (typeof saatKontrolFonksiyonu === "function") {
+        saatKontrolFonksiyonu();
+    }
+}
+
+function doluSaatleriKontrolEt() {
+    const randevuFormu = document.getElementById("randevuFormu");
+    const doktorSecimi = document.getElementById("doktorSecimi");
+    const tarihSecimi = document.getElementById("tarihSecimi");
+    const saatSecimi = document.getElementById("saatSecimi");
+
+    if (!randevuFormu || !doktorSecimi || !tarihSecimi || !saatSecimi) {
+        return;
+    }
+
+    const doktor = doktorSecimi.value;
+    const tarih = tarihSecimi.value;
+
+    saatSecimi.innerHTML = "";
+
+    if (!doktor || !tarih) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Önce doktor ve tarih seçiniz";
+        option.disabled = true;
+        option.selected = true;
+        saatSecimi.appendChild(option);
+        return;
+    }
+
+    const yukleniyorOption = document.createElement("option");
+    yukleniyorOption.value = "";
+    yukleniyorOption.textContent = "Dolu saatler kontrol ediliyor...";
+    yukleniyorOption.disabled = true;
+    yukleniyorOption.selected = true;
+    saatSecimi.appendChild(yukleniyorOption);
+
+    const url = randevuFormu.dataset.doluSaatlerUrl +
+        "?doktor=" + encodeURIComponent(doktor) +
+        "&tarih=" + encodeURIComponent(tarih);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const doluSaatler = data.dolu_saatler || [];
+            const uygunSaatler = data.uygun_saatler || [];
+            saatSecimi.innerHTML = "";
+
+            const ilkOption = document.createElement("option");
+            ilkOption.value = "";
+            ilkOption.textContent = "Saat seçiniz";
+            saatSecimi.appendChild(ilkOption);
+
+            uygunSaatler.forEach(function(saat) {
+                const option = document.createElement("option");
+                option.value = saat;
+
+                if (doluSaatler.includes(saat)) {
+                    option.textContent = saat + " - Dolu";
+                    option.disabled = true;
+                } else {
+                    option.textContent = saat;
+                }
+
+                saatSecimi.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.log("Randevu dolu saatleri alınırken hata oluştu:", error);
+
+            saatSecimi.innerHTML = "";
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Saatler alınamadı";
+            option.disabled = true;
+            option.selected = true;
+            saatSecimi.appendChild(option);
+        });
+}
+
+function beklemeSaatleriKontrolEt() {
+    const beklemeFormu = document.getElementById("beklemeFormu");
+    const doktorSecimi = document.getElementById("beklemeDoktorSecimi");
+    const tarihSecimi = document.getElementById("beklemeTarihSecimi");
+    const saatSecimi = document.getElementById("beklemeSaatSecimi");
+
+    if (!beklemeFormu || !doktorSecimi || !tarihSecimi || !saatSecimi) {
+        return;
+    }
+
+    const doktor = doktorSecimi.value;
+    const tarih = tarihSecimi.value;
+
+    saatSecimi.innerHTML = "";
+
+    if (!doktor || !tarih) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Önce doktor ve tarih seçiniz";
+        option.disabled = true;
+        option.selected = true;
+        saatSecimi.appendChild(option);
+        return;
+    }
+
+    const yukleniyorOption = document.createElement("option");
+    yukleniyorOption.value = "";
+    yukleniyorOption.textContent = "Dolu saatler kontrol ediliyor...";
+    yukleniyorOption.disabled = true;
+    yukleniyorOption.selected = true;
+    saatSecimi.appendChild(yukleniyorOption);
+
+    const url = beklemeFormu.dataset.doluSaatlerUrl +
+        "?doktor=" + encodeURIComponent(doktor) +
+        "&tarih=" + encodeURIComponent(tarih);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const uygunSaatler = data.uygun_saatler || [];
+
+            const doluSaatler = (
+                data.dolu_saatler || []
+            ).filter(
+                saat => uygunSaatler.includes(saat)
+            );
+
+            saatSecimi.innerHTML = "";
+
+            if (doluSaatler.length === 0) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.textContent = "Dolu saat bulunmuyor";
+                option.disabled = true;
+                option.selected = true;
+                saatSecimi.appendChild(option);
+                return;
+            }
+
+            const ilkOption = document.createElement("option");
+            ilkOption.value = "";
+            ilkOption.textContent = "Dolu saat seçiniz";
+            saatSecimi.appendChild(ilkOption);
+
+            doluSaatler.forEach(function(saat) {
+                const option = document.createElement("option");
+                option.value = saat;
+                option.textContent = saat + " - Dolu";
+                saatSecimi.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.log("Bekleme listesi dolu saatleri alınırken hata oluştu:", error);
+
+            saatSecimi.innerHTML = "";
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Dolu saatler alınamadı";
+            option.disabled = true;
+            option.selected = true;
+            saatSecimi.appendChild(option);
+        });
+}
+
+function telefonInputFormatla(input) {
+    let rakamlar = input.value.replace(/\D/g, "");
+
+    if (rakamlar.length > 11) {
+        rakamlar = rakamlar.substring(0, 11);
+    }
+
+    if (rakamlar.length <= 10) {
+        if (rakamlar.length > 6) {
+            input.value = rakamlar.substring(0, 3) + " " + rakamlar.substring(3, 6) + " " + rakamlar.substring(6, 8) + " " + rakamlar.substring(8, 10);
+        } else if (rakamlar.length > 3) {
+            input.value = rakamlar.substring(0, 3) + " " + rakamlar.substring(3, 6);
+        } else {
+            input.value = rakamlar;
+        }
+    } else {
+        input.value = rakamlar.substring(0, 4) + " " + rakamlar.substring(4, 7) + " " + rakamlar.substring(7, 9) + " " + rakamlar.substring(9, 11);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const hastaPanel = document.getElementById("hastaPanel");
+    const aktifBolum = hastaPanel.dataset.aktifBolum || "anasayfa";
+
+    icerikGoster(aktifBolum, null);
+
+    const mesajlar = document.querySelectorAll(".flash-mesaj");
+
+    mesajlar.forEach(function(mesaj) {
+        uyariGoster(mesaj.dataset.mesaj, mesaj.dataset.kategori);
+    });
+
+    const poliklinikSecimi = document.getElementById("poliklinikSecimi");
+    const doktorSecimi = document.getElementById("doktorSecimi");
+    const tarihSecimi = document.getElementById("tarihSecimi");
+
+    if (poliklinikSecimi && doktorSecimi) {
+        doktorlariBransaGoreFiltrele("poliklinikSecimi", "doktorSecimi", doluSaatleriKontrolEt);
+
+        poliklinikSecimi.addEventListener("change", function() {
+            doktorlariBransaGoreFiltrele("poliklinikSecimi", "doktorSecimi", doluSaatleriKontrolEt);
+        });
+    }
+
+    if (doktorSecimi && tarihSecimi) {
+        doktorSecimi.addEventListener("change", doluSaatleriKontrolEt);
+        tarihSecimi.addEventListener("change", doluSaatleriKontrolEt);
+    }
+
+    const beklemePoliklinikSecimi = document.getElementById("beklemePoliklinikSecimi");
+    const beklemeDoktorSecimi = document.getElementById("beklemeDoktorSecimi");
+    const beklemeTarihSecimi = document.getElementById("beklemeTarihSecimi");
+
+    if (beklemePoliklinikSecimi && beklemeDoktorSecimi) {
+        doktorlariBransaGoreFiltrele("beklemePoliklinikSecimi", "beklemeDoktorSecimi", beklemeSaatleriKontrolEt);
+
+        beklemePoliklinikSecimi.addEventListener("change", function() {
+            doktorlariBransaGoreFiltrele("beklemePoliklinikSecimi", "beklemeDoktorSecimi", beklemeSaatleriKontrolEt);
+        });
+    }
+
+    if (beklemeDoktorSecimi && beklemeTarihSecimi) {
+        beklemeDoktorSecimi.addEventListener("change", beklemeSaatleriKontrolEt);
+        beklemeTarihSecimi.addEventListener("change", beklemeSaatleriKontrolEt);
+    }
+
+    const profilTelefon = document.getElementById("profilTelefon");
+
+    if (profilTelefon) {
+        telefonInputFormatla(profilTelefon);
+
+        profilTelefon.addEventListener("input", function() {
+            telefonInputFormatla(profilTelefon);
+        });
+    }
+});
+</script>
+
+</body>
+</html>

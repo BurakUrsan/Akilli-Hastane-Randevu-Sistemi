@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Şifre Sıfırla</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='kayit.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="tek-kart-sayfa">
+
+    <div class="container sifremi-unuttum-karti">
+
+        <h1>Yeni Şifre Oluştur</h1>
+
+        {% if hata %}
+            <p class="hata">
+                {{ hata }}
+            </p>
+        {% endif %}
+
+        {% if basari %}
+
+            <p class="basari">
+                {{ basari }}
+            </p>
+
+            <p>
+                <a href="{{ url_for('giris') }}">
+                    Giriş ekranına dön
+                </a>
+            </p>
+
+        {% elif not gecersiz %}
+
+            <p class="bilgi-metni">
+                Hesabınız için yeni şifrenizi belirleyiniz.
+            </p>
+
+            <form method="POST">
+
+                <label for="yeni_sifre">
+                    Yeni Şifre
+                </label>
+
+                <input
+                    type="password"
+                    id="yeni_sifre"
+                    name="yeni_sifre"
+                    placeholder="Yeni şifrenizi giriniz"
+                    required
+                >
+
+                <label for="yeni_sifre_tekrar">
+                    Yeni Şifre Tekrar
+                </label>
+
+                <input
+                    type="password"
+                    id="yeni_sifre_tekrar"
+                    name="yeni_sifre_tekrar"
+                    placeholder="Yeni şifrenizi tekrar giriniz"
+                    required
+                >
+
+                <button type="submit">
+                    Şifremi Değiştir
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <p>
+                <a href="{{ url_for('sifremi_unuttum') }}">
+                    Yeni şifre sıfırlama bağlantısı iste
+                </a>
+            </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

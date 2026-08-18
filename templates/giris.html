@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kimlik Doğrulama</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='giris.css') }}">
+</head>
+<body>
+
+<div class="sayfa-alani">
+
+    <div class="giris-merkez">
+
+        <div class="sol-ozellik-alani">
+            <div class="ozellik-paneli" id="ozellikPaneli">
+                <button type="button" class="ozellik-kapat" onclick="ozellikPaneliAcKapat()">×</button>
+
+                <h3>Sistem Özellikleri</h3>
+
+                <ul>
+                    <li>Randevu alma</li>
+                    <li>Randevu iptal etme</li>
+                    <li>Randevuları görüntüleme</li>
+                    <li>Bekleme listesine katılma</li>
+                    <li>SMS / e-posta bildirimi</li>
+                    <li>Yoğunluk tahmini görüntüleme</li>
+                </ul>
+            </div>
+
+            <button type="button" class="ozellik-sekmesi" onclick="ozellikPaneliAcKapat()">
+                <span>Sistem Özellikleri</span>
+            </button>
+        </div>
+
+        <div class="container">
+            <h1>Akıllı Hastane Randevu Sistemi</h1>
+            <h2>Kimlik Doğrulama</h2>
+
+            {% if hata %}
+                <p class="hata">{{ hata }}</p>
+            {% endif %}
+
+            <form method="POST">
+                <label for="kullanici_girisi">TC Kimlik No / E-posta</label>
+                <input
+                    type="text"
+                    id="kullanici_girisi"
+                    name="kullanici_girisi"
+                    placeholder="TC kimlik numaranızı veya e-posta adresinizi giriniz"
+                    required>
+
+                <label for="giris_sifre">Şifre</label>
+                <div class="sifre-kutusu">
+                    <input
+                        type="password"
+                        id="giris_sifre"
+                        name="sifre"
+                        placeholder="Şifrenizi giriniz"
+                        required>
+
+                    <button type="button" class="sifre-goz" onclick="sifreGosterGizle()">
+                        <svg
+                            id="ikon-goster"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+
+                        <svg
+                            id="ikon-gizle"
+                            class="ikon-gizli"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5.5 20 2 12 2 12a20.29 20.29 0 0 1 5.06-5.94"></path>
+                            <path d="M9.9 4.24A10.64 10.64 0 0 1 12 4c6.5 0 10 8 10 8a20.72 20.72 0 0 1-2.16 3.19"></path>
+                            <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <label for="guvenlik_kodu_input">Güvenlik Kodu</label>
+
+                <div class="guvenlik-satiri">
+                    <div class="guvenlik-alani">
+                        <div class="guvenlik-cizgi"></div>
+
+                        <span class="guvenlik-kodu" id="guvenlikKoduGoster">
+                            {% for rakam in guvenlik_kodu %}
+                                <span>{{ rakam }}</span>
+                            {% endfor %}
+                        </span>
+                    </div>
+
+                    <button type="button" class="kod-yenile" onclick="guvenlikKoduYenile()">⟳</button>
+                </div>
+
+                <input
+                    type="text"
+                    id="guvenlik_kodu_input"
+                    name="guvenlik_kodu"
+                    placeholder="Güvenlik kodunu giriniz"
+                    required>
+
+                <button type="submit">Giriş Yap</button>
+            </form>
+
+            <div class="giris-linkleri">
+                <p>Hasta hesabınız yok mu? <a href="/kayit">Kayıt Ol</a></p>
+                <p>Şifrenizi mi unuttunuz? <a href="/sifremi-unuttum">Şifremi Unuttum</a></p>
+            </div>
+
+            <div class="test-bilgileri">
+                <p><strong>Test girişleri:</strong></p>
+                <p>Hasta: 11111111111 / Hasta123.</p>
+                <p>Doktor: doktor@example.com / Doktor123.</p>
+                <p>Yönetici: admin@example.com / Admin123.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="sag-gorseller">
+        <div class="gorsel-kart">
+            <img
+                class="gorsel-randevu"
+                src="{{ url_for('static', filename='images/yaklasan_randevular.png') }}"
+                alt="Yaklaşan Randevular">
+        </div>
+
+        <div class="gorsel-kart">
+            <img
+                class="gorsel-yogunluk"
+                src="{{ url_for('static', filename='images/haftalik_yogunluk.png') }}"
+                alt="Haftalık Yoğunluk Grafiği">
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function sifreGosterGizle() {
+        const sifreInput = document.getElementById("giris_sifre");
+        const ikonGoster = document.getElementById("ikon-goster");
+        const ikonGizle = document.getElementById("ikon-gizle");
+
+        if (sifreInput.type === "password") {
+            sifreInput.type = "text";
+            ikonGoster.classList.add("ikon-gizli");
+            ikonGizle.classList.remove("ikon-gizli");
+        } else {
+            sifreInput.type = "password";
+            ikonGoster.classList.remove("ikon-gizli");
+            ikonGizle.classList.add("ikon-gizli");
+        }
+    }
+
+    function ozellikPaneliAcKapat() {
+        const panel = document.getElementById("ozellikPaneli");
+        panel.classList.toggle("aktif");
+    }
+
+    function guvenlikKoduYenile() {
+        fetch("/guvenlik-kodu-yenile")
+            .then(response => response.json())
+            .then(data => {
+                const kodAlani = document.getElementById("guvenlikKoduGoster");
+                const kodInput = document.getElementById("guvenlik_kodu_input");
+
+                kodAlani.innerHTML = "";
+
+                for (let rakam of data.guvenlik_kodu) {
+                    const span = document.createElement("span");
+                    span.textContent = rakam;
+                    kodAlani.appendChild(span);
+                }
+
+                kodInput.value = "";
+                kodInput.focus();
+            });
+    }
+</script>
+
+</body>
+</html>

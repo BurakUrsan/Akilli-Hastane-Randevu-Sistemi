@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Doktor Paneli</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='doktor.css') }}">
+</head>
+<body>
+
+<div class="doktor-panel-sayfa" id="doktorPanel" data-aktif-bolum="{{ aktif_bolum }}">
+
+    <aside class="doktor-menu">
+        <div class="doktor-menu-baslik">
+            <h2>Doktor Giriş</h2>
+            <span>Randevu Sistemi</span>
+        </div>
+
+        <div class="doktor-menu-linkler">
+            <button type="button" data-bolum="doktor-anasayfa" class="doktor-menu-btn {% if aktif_bolum == 'doktor-anasayfa' %}aktif{% endif %}" onclick="doktorIcerikGoster('doktor-anasayfa', this)">
+                <span class="doktor-menu-icon">🏠</span>
+                <span class="doktor-menu-yazi">Ana Sayfa</span>
+            </button>
+
+            <button type="button" data-bolum="gunluk-randevular" class="doktor-menu-btn {% if aktif_bolum == 'gunluk-randevular' %}aktif{% endif %}" onclick="doktorIcerikGoster('gunluk-randevular', this)">
+                <span class="doktor-menu-icon">📅</span>
+                <span class="doktor-menu-yazi">Günlük Randevular</span>
+            </button>
+
+            <button type="button" data-bolum="randevu-detaylari" class="doktor-menu-btn {% if aktif_bolum == 'randevu-detaylari' %}aktif{% endif %}" onclick="doktorIcerikGoster('randevu-detaylari', this)">
+                <span class="doktor-menu-icon">📋</span>
+                <span class="doktor-menu-yazi">Randevu Detayları</span>
+            </button>
+
+            <button type="button" data-bolum="iptal-randevular" class="doktor-menu-btn {% if aktif_bolum == 'iptal-randevular' %}aktif{% endif %}" onclick="doktorIcerikGoster('iptal-randevular', this)">
+                <span class="doktor-menu-icon">❌</span>
+                <span class="doktor-menu-yazi">İptal Edilen Randevular</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="doktor-ana-alan">
+
+        <header class="doktor-ust-bar">
+            <div class="doktor-ust-sol">
+                <button type="button" class="doktor-menu-ac-kapat" onclick="doktorMenuAcKapat()">☰</button>
+                <h1 id="doktorSayfaBaslik">Ana Sayfa</h1>
+            </div>
+
+            <div class="doktor-profil-alani">
+                <button type="button" class="doktor-profil-buton" onclick="doktorProfilMenuAcKapat()">
+                    <span class="doktor-profil-avatar">
+                        {{ doktor_bilgileri.doktor_adi[0] if doktor_bilgileri and doktor_bilgileri.doktor_adi else "D" }}
+                    </span>
+                    <span class="doktor-profil-ad">
+                        {{ doktor_bilgileri.doktor_adi if doktor_bilgileri else "Doktor" }}
+                    </span>
+                    <span class="doktor-profil-ok">▾</span>
+                </button>
+
+                <div class="doktor-profil-menu" id="doktorProfilMenu">
+                    <button type="button" onclick="doktorIcerikGoster('doktor-profil', null); doktorProfilMenuAcKapat();">
+                        Profil Bilgilerim
+                    </button>
+                    <a href="{{ url_for('cikis') }}">Çıkış Yap</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="doktor-flash-alani">
+            {% with mesajlar = get_flashed_messages(with_categories=true) %}
+                {% if mesajlar %}
+                    {% for kategori, mesaj in mesajlar %}
+                        <div class="doktor-flash {{ kategori }}">{{ mesaj }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <section id="doktor-anasayfa" class="doktor-icerik-kutusu {% if aktif_bolum == 'doktor-anasayfa' %}doktor-aktif-icerik{% endif %}">
+            <div class="doktor-hosgeldin-karti">
+                <h2>Hoş Geldiniz</h2>
+                <p>Doktor panelinden size ait randevuları tarihe göre görüntüleyebilir, randevu detaylarını inceleyebilir ve iptal edilen randevuları takip edebilirsiniz.</p>
+            </div>
+
+            <div class="doktor-ozet-kartlar">
+                <div class="doktor-ozet-kart">
+                    <h3>Bugünkü Randevu</h3>
+                    <p>{{ bugunku_randevular|length }} randevu bulunmaktadır.</p>
+                </div>
+
+                <div class="doktor-ozet-kart">
+                    <h3>Toplam Aktif Randevu</h3>
+                    <p>{{ aktif_randevular|length }} aktif randevu bulunmaktadır.</p>
+                </div>
+
+                <div class="doktor-ozet-kart">
+                    <h3>İptal Edilen</h3>
+                    <p>{{ iptal_randevular|length }} randevu iptal edilmiştir.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="gunluk-randevular" class="doktor-icerik-kutusu {% if aktif_bolum == 'gunluk-randevular' %}doktor-aktif-icerik{% endif %}">
+            <div class="doktor-form-karti">
+                <h2>Günlük Randevular</h2>
+
+                <form class="doktor-tarih-form" action="{{ url_for('doktor_panel') }}" method="GET">
+                    <input type="hidden" name="bolum" value="gunluk-randevular">
+
+                    <div class="doktor-tarih-alan">
+                        <label for="randevuTarihi">Tarih Seçiniz</label>
+                        <input type="date" id="randevuTarihi" name="tarih" value="{{ secili_tarih }}">
+                    </div>
+
+                    <button type="submit">Randevuları Göster</button>
+                </form>
+
+                <h2 class="doktor-alt-baslik">{{ secili_tarih_goster }} Tarihli Randevular</h2>
+
+                {% if secili_tarih_randevulari %}
+                    <div class="doktor-randevu-liste">
+                        {% for randevu in secili_tarih_randevulari %}
+                            <div class="doktor-randevu-kart">
+                                <div class="doktor-randevu-ust">
+                                    <h3>{{ randevu.hasta_detay_ad_soyad }}</h3>
+                                    <span class="doktor-durum doktor-aktif-durum">Aktif</span>
+                                </div>
+
+                                <p><strong>Poliklinik:</strong> {{ randevu.poliklinik }}</p>
+                                <p><strong>Tarih:</strong> {{ randevu.tarih_goster }}</p>
+                                <p><strong>Saat:</strong> {{ randevu.saat }}</p>
+
+                                {% if randevu.doktor_notu %}
+                                    <p class="doktor-not-var">Doktor notu mevcut.</p>
+                                {% endif %}
+
+                                <div class="doktor-randevu-butonlar">
+                                    <a class="doktor-detay-link" href="{{ url_for('doktor_panel', bolum='randevu-detaylari', randevu_id=randevu.id, tarih=secili_tarih) }}">
+                                        Detay Gör
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        class="doktor-not-ac-btn"
+                                        data-action="{{ url_for('doktor_not_guncelle', randevu_id=randevu.id) }}"
+                                        data-not="{{ randevu.doktor_notu|e }}"
+                                        onclick="doktorNotModalAc(this, '{{ randevu.id }}', '{{ randevu.tarih }}', 'gunluk-randevular')">
+                                        {% if randevu.doktor_notu %}
+                                            Notu Güncelle
+                                        {% else %}
+                                            Not Ekle
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="doktor-bos-bilgi">Seçilen tarihe ait aktif randevu bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="randevu-detaylari" class="doktor-icerik-kutusu {% if aktif_bolum == 'randevu-detaylari' %}doktor-aktif-icerik{% endif %}">
+            <div class="doktor-form-karti">
+                <h2>Randevu Detayları</h2>
+
+                {% if secili_randevu %}
+                    <div class="doktor-detay-grid">
+                        <div class="doktor-detay-kart">
+                            <h3>Hasta Bilgileri</h3>
+                            <p><strong>Ad Soyad:</strong> {{ secili_randevu.hasta_detay_ad_soyad }}</p>
+                            <p><strong>Telefon:</strong> {{ secili_randevu.hasta_telefon }}</p>
+                            <p><strong>Hasta Kodu:</strong> #{{ secili_randevu.hasta_sira_kodu }}</p>
+                        </div>
+
+                        <div class="doktor-detay-kart">
+                            <h3>Randevu Bilgileri</h3>
+                            <p><strong>Poliklinik:</strong> {{ secili_randevu.poliklinik }}</p>
+                            <p><strong>Doktor:</strong> {{ secili_randevu.doktor }}</p>
+                            <p><strong>Tarih:</strong> {{ secili_randevu.tarih_goster }}</p>
+                            <p><strong>Saat:</strong> {{ secili_randevu.saat }}</p>
+                            <p><strong>Durum:</strong> {{ secili_randevu.durum }}</p>
+                        </div>
+
+                        <div class="doktor-detay-kart doktor-tam-genislik">
+                            <h3>Hasta Notu / Şikayet Açıklaması</h3>
+
+                            {% if secili_randevu.hasta_notu %}
+                                <p class="doktor-hasta-notu">{{ secili_randevu.hasta_notu }}</p>
+                            {% else %}
+                                <p class="doktor-hasta-notu">Hasta tarafından randevu notu eklenmemiştir.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="doktor-detay-kart doktor-tam-genislik">
+                            <h3>Doktor Notu</h3>
+
+                            {% if secili_randevu.doktor_notu %}
+                                <p class="doktor-hasta-notu">{{ secili_randevu.doktor_notu }}</p>
+                            {% else %}
+                                <p class="doktor-hasta-notu">Doktor notu eklenmemiştir.</p>
+                            {% endif %}
+
+                            <button
+                                type="button"
+                                class="doktor-not-ac-btn doktor-detay-not-btn"
+                                data-action="{{ url_for('doktor_not_guncelle', randevu_id=secili_randevu.id) }}"
+                                data-not="{{ secili_randevu.doktor_notu|e }}"
+                                onclick="doktorNotModalAc(this, '{{ secili_randevu.id }}', '{{ secili_randevu.tarih }}', 'randevu-detaylari')">
+                                {% if secili_randevu.doktor_notu %}
+                                    Notu Güncelle
+                                {% else %}
+                                    Not Ekle
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+
+                    <a class="doktor-detay-link doktor-geri-link" href="{{ url_for('doktor_panel', bolum='gunluk-randevular', tarih=secili_randevu.tarih) }}">
+                        Randevu Listesine Dön
+                    </a>
+                {% else %}
+                    <p class="doktor-bos-bilgi">
+                        Görüntülenecek randevu detayı bulunmamaktadır. Randevu detayını görmek için önce günlük randevular bölümünden tarih seçerek bir randevu seçiniz.
+                    </p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="iptal-randevular" class="doktor-icerik-kutusu {% if aktif_bolum == 'iptal-randevular' %}doktor-aktif-icerik{% endif %}">
+            <div class="doktor-form-karti">
+                <h2>İptal Edilen Randevular</h2>
+
+                {% if iptal_randevular %}
+                    <div class="doktor-randevu-liste">
+                        {% for randevu in iptal_randevular %}
+                            <div class="doktor-randevu-kart">
+                                <div class="doktor-randevu-ust">
+                                    <h3>{{ randevu.hasta_detay_ad_soyad }}</h3>
+                                    <span class="doktor-durum doktor-iptal-durum">İptal Edildi</span>
+                                </div>
+
+                                <p><strong>Poliklinik:</strong> {{ randevu.poliklinik }}</p>
+                                <p><strong>Tarih:</strong> {{ randevu.tarih_goster }}</p>
+                                <p><strong>Saat:</strong> {{ randevu.saat }}</p>
+
+                                {% if randevu.doktor_notu %}
+                                    <p class="doktor-not-var">Doktor notu mevcut.</p>
+                                {% endif %}
+
+                                <div class="doktor-randevu-butonlar">
+                                    <a class="doktor-detay-link" href="{{ url_for('doktor_panel', bolum='randevu-detaylari', randevu_id=randevu.id, tarih=randevu.tarih) }}">
+                                        Detay Gör
+                                    </a>
+
+                                    <button
+                                        type="button"
+                                        class="doktor-not-ac-btn"
+                                        data-action="{{ url_for('doktor_not_guncelle', randevu_id=randevu.id) }}"
+                                        data-not="{{ randevu.doktor_notu|e }}"
+                                        onclick="doktorNotModalAc(this, '{{ randevu.id }}', '{{ randevu.tarih }}', 'iptal-randevular')">
+                                        {% if randevu.doktor_notu %}
+                                            Notu Güncelle
+                                        {% else %}
+                                            Not Ekle
+                                        {% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="doktor-bos-bilgi">İptal edilen randevu bulunmamaktadır.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section id="doktor-profil" class="doktor-icerik-kutusu {% if aktif_bolum == 'doktor-profil' %}doktor-aktif-icerik{% endif %}">
+            <div class="doktor-form-karti">
+                <h2>Profil Bilgilerim</h2>
+
+                <div class="doktor-profil-kart">
+                    <p><strong>Ad Soyad:</strong> {{ doktor_bilgileri.doktor_adi }}</p>
+                    <p><strong>Branş:</strong> {{ doktor_bilgileri.brans }}</p>
+                    <p><strong>E-posta:</strong> {{ doktor_bilgileri.email }}</p>
+                    <p><strong>Telefon:</strong> {{ doktor_bilgileri.telefon }}</p>
+                    <p><strong>Çalışma Saatleri:</strong> {{ doktor_bilgileri.calisma_saatleri }}</p>
+                </div>
+
+                <div class="doktor-profil-duzenleme-alani">
+                    <h3 class="doktor-profil-alt-baslik">Bilgilerimi Düzenle</h3>
+
+                    <form class="doktor-profil-form" method="POST" action="{{ url_for('doktor_profil_guncelle') }}">
+                        <label for="doktorProfilTelefon">Telefon</label>
+                        <input type="text" name="telefon" id="doktorProfilTelefon" value="{{ doktor_bilgileri.telefon_form }}" maxlength="14" required>
+
+                        <label for="doktorProfilEmail">E-posta</label>
+                        <input type="email" name="email" id="doktorProfilEmail" value="{{ doktor_bilgileri.email }}" required>
+                        
+                        <label for="doktorCalismaSaatleri">Çalışma Saatleri</label>
+                        <input
+                            type="text"
+                            name="calisma_saatleri"
+                            id="doktorCalismaSaatleri"
+                            value="{{ doktor_bilgileri.calisma_saatleri }}"
+                            maxlength="50"
+                            placeholder="09:00 - 17:00"
+                            required
+                        >
+
+                        <div class="doktor-sifre-ayrac">
+                            <h4>Şifre Değiştir</h4>
+                            <p>Şifrenizi değiştirmek istemiyorsanız aşağıdaki şifre alanlarını boş bırakabilirsiniz.</p>
+                        </div>
+
+                        <label for="doktorMevcutSifre">Mevcut Şifre</label>
+                        <input type="password" name="mevcut_sifre" id="doktorMevcutSifre">
+
+                        <label for="doktorYeniSifre">Yeni Şifre</label>
+                        <input type="password" name="yeni_sifre" id="doktorYeniSifre">
+
+                        <label for="doktorYeniSifreTekrar">Yeni Şifre Tekrar</label>
+                        <input type="password" name="yeni_sifre_tekrar" id="doktorYeniSifreTekrar">
+
+                        <div class="doktor-sifre-kural-bilgi">
+                            Yeni şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve sembol içermelidir.
+                        </div>
+
+                        <button type="submit">Bilgileri Güncelle</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<div class="doktor-not-modal-arkaplan" id="doktorNotModal">
+    <div class="doktor-not-modal">
+        <div class="doktor-not-modal-baslik">
+            <h3>Doktor Notu</h3>
+            <button type="button" class="doktor-not-modal-kapat" onclick="doktorNotModalKapat()">×</button>
+        </div>
+
+        <form method="POST" id="doktorNotForm">
+            <input type="hidden" name="tarih" id="doktorNotTarih">
+            <input type="hidden" name="donus_bolum" id="doktorNotDonusBolum">
+
+            <label for="doktorNotTextarea">Not İçeriği</label>
+            <textarea
+                name="doktor_notu"
+                id="doktorNotTextarea"
+                maxlength="1000"
+                placeholder="Randevuya ilişkin doktor notunuzu yazabilirsiniz."></textarea>
+
+            <div class="doktor-not-modal-alt">
+                <button type="button" class="doktor-not-vazgec" onclick="doktorNotModalKapat()">Vazgeç</button>
+                <button type="submit" class="doktor-not-kaydet">Notu Kaydet / Güncelle</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function doktorMenuAcKapat() {
+    document.getElementById("doktorPanel").classList.toggle("doktor-menu-kapali");
+}
+
+function doktorProfilMenuAcKapat() {
+    document.getElementById("doktorProfilMenu").classList.toggle("doktor-profil-menu-aktif");
+}
+
+function doktorIcerikGoster(id, buton) {
+    const secilenIcerik = document.getElementById(id);
+
+    if (!secilenIcerik) {
+        id = "doktor-anasayfa";
+    }
+
+    const icerikler = document.querySelectorAll(".doktor-icerik-kutusu");
+    const butonlar = document.querySelectorAll(".doktor-menu-btn");
+    const hedefIcerik = document.getElementById(id);
+
+    icerikler.forEach(icerik => {
+        icerik.classList.remove("doktor-aktif-icerik");
+    });
+
+    butonlar.forEach(btn => {
+        btn.classList.remove("aktif");
+    });
+
+    hedefIcerik.classList.add("doktor-aktif-icerik");
+
+    if (buton !== null) {
+        buton.classList.add("aktif");
+    } else {
+        const ilgiliButon = document.querySelector(`[data-bolum="${id}"]`);
+
+        if (ilgiliButon) {
+            ilgiliButon.classList.add("aktif");
+        }
+    }
+
+    const basliklar = {
+        "doktor-anasayfa": "Ana Sayfa",
+        "gunluk-randevular": "Günlük Randevular",
+        "randevu-detaylari": "Randevu Detayları",
+        "iptal-randevular": "İptal Edilen Randevular",
+        "doktor-profil": "Profil Bilgilerim"
+    };
+
+    document.getElementById("doktorSayfaBaslik").textContent = basliklar[id] || "Ana Sayfa";
+}
+
+function doktorNotModalAc(buton, randevuId, tarih, donusBolum) {
+    const modal = document.getElementById("doktorNotModal");
+    const form = document.getElementById("doktorNotForm");
+    const textarea = document.getElementById("doktorNotTextarea");
+    const tarihInput = document.getElementById("doktorNotTarih");
+    const donusBolumInput = document.getElementById("doktorNotDonusBolum");
+
+    form.action = buton.dataset.action;
+    textarea.value = buton.dataset.not || "";
+    tarihInput.value = tarih;
+    donusBolumInput.value = donusBolum;
+
+    modal.classList.add("doktor-not-modal-aktif");
+    textarea.focus();
+}
+
+function doktorNotModalKapat() {
+    document.getElementById("doktorNotModal").classList.remove("doktor-not-modal-aktif");
+}
+
+function doktorTelefonInputFormatla(input) {
+    let rakamlar = input.value.replace(/\D/g, "");
+
+    if (rakamlar.length > 11) {
+        rakamlar = rakamlar.substring(0, 11);
+    }
+
+    if (rakamlar.length <= 10) {
+        if (rakamlar.length > 6) {
+            input.value = rakamlar.substring(0, 3) + " " + rakamlar.substring(3, 6) + " " + rakamlar.substring(6, 8) + " " + rakamlar.substring(8, 10);
+        } else if (rakamlar.length > 3) {
+            input.value = rakamlar.substring(0, 3) + " " + rakamlar.substring(3, 6);
+        } else {
+            input.value = rakamlar;
+        }
+    } else {
+        input.value = rakamlar.substring(0, 4) + " " + rakamlar.substring(4, 7) + " " + rakamlar.substring(7, 9) + " " + rakamlar.substring(9, 11);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const doktorPanel = document.getElementById("doktorPanel");
+    const aktifBolum = doktorPanel.dataset.aktifBolum || "doktor-anasayfa";
+
+    doktorIcerikGoster(aktifBolum, null);
+
+    document.querySelectorAll(".doktor-flash").forEach(function(mesaj) {
+        setTimeout(function() {
+            mesaj.classList.add("doktor-flash-kapanis");
+
+            setTimeout(function() {
+                mesaj.remove();
+            }, 300);
+        }, 3000);
+    });
+
+    const doktorProfilTelefon = document.getElementById("doktorProfilTelefon");
+
+    if (doktorProfilTelefon) {
+        doktorTelefonInputFormatla(doktorProfilTelefon);
+
+        doktorProfilTelefon.addEventListener("input", function() {
+            doktorTelefonInputFormatla(doktorProfilTelefon);
+        });
+    }
+});
+</script>
+
+</body>
+</html>

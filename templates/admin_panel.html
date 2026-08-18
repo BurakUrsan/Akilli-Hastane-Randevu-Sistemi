@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Yönetici Paneli</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+</head>
+<body>
+
+<div class="admin-panel-sayfa" id="adminPanel" data-aktif-bolum="{{ aktif_bolum }}">
+
+    <aside class="admin-menu">
+        <div class="admin-menu-baslik">
+            <h2>Yönetici Giriş</h2>
+            <span>Randevu Sistemi</span>
+        </div>
+
+        <div class="admin-menu-linkler">
+
+            <button data-bolum="admin-anasayfa" class="admin-menu-btn {% if aktif_bolum == 'admin-anasayfa' %}aktif{% endif %}" onclick="adminIcerikGoster('admin-anasayfa', this)">
+                <span class="admin-menu-icon">🏠</span>
+                <span class="admin-menu-yazi">Ana Sayfa</span>
+            </button>
+
+            <button data-bolum="hasta-yonetimi" class="admin-menu-btn {% if aktif_bolum == 'hasta-yonetimi' %}aktif{% endif %}" onclick="adminIcerikGoster('hasta-yonetimi', this)">
+                <span class="admin-menu-icon">👤</span>
+                <span class="admin-menu-yazi">Hasta Yönetimi</span>
+            </button>
+
+            <button data-bolum="doktor-yonetimi" class="admin-menu-btn {% if aktif_bolum == 'doktor-yonetimi' %}aktif{% endif %}" onclick="adminIcerikGoster('doktor-yonetimi', this)">
+                <span class="admin-menu-icon">🩺</span>
+                <span class="admin-menu-yazi">Doktor Yönetimi</span>
+            </button>
+
+            <button data-bolum="randevu-yonetimi" class="admin-menu-btn {% if aktif_bolum == 'randevu-yonetimi' %}aktif{% endif %}" onclick="adminIcerikGoster('randevu-yonetimi', this)">
+                <span class="admin-menu-icon">📅</span>
+                <span class="admin-menu-yazi">Randevu Yönetimi</span>
+            </button>
+
+            <button data-bolum="bekleme-listesi" class="admin-menu-btn {% if aktif_bolum == 'bekleme-listesi' %}aktif{% endif %}" onclick="adminIcerikGoster('bekleme-listesi', this)">
+                <span class="admin-menu-icon">⏳</span>
+                <span class="admin-menu-yazi">Bekleme Listesi</span>
+            </button>
+
+            <button data-bolum="yogunluk-raporlari" class="admin-menu-btn {% if aktif_bolum == 'yogunluk-raporlari' %}aktif{% endif %}" onclick="adminIcerikGoster('yogunluk-raporlari', this)">
+                <span class="admin-menu-icon">📊</span>
+                <span class="admin-menu-yazi">Yoğunluk Raporları</span>
+            </button>
+
+        </div>
+    </aside>
+
+    <main class="admin-ana-alan">
+
+        <header class="admin-ust-bar">
+            <div class="admin-ust-sol">
+                <button class="admin-menu-ac-kapat" onclick="adminMenuAcKapat()">☰</button>
+                <h1 class="admin-sayfa-baslik" id="adminSayfaBaslik">Ana Sayfa</h1>
+            </div>
+
+            <div class="admin-profil-alani">
+                <button class="admin-profil-buton" onclick="adminProfilMenuAcKapat()">
+                    <span class="admin-profil-avatar">Y</span>
+                    <span class="admin-profil-ad">Yönetici</span>
+                    <span class="admin-profil-ok">▾</span>
+                </button>
+
+                <div class="admin-profil-menu" id="adminProfilMenu">
+                    <a href="{{ url_for('cikis') }}">Çıkış Yap</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-flash-alani">
+            {% with mesajlar = get_flashed_messages(with_categories=true) %}
+                {% if mesajlar %}
+                    {% for kategori, mesaj in mesajlar %}
+                        <div class="admin-flash {{ kategori }}">{{ mesaj }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <section id="admin-anasayfa" class="admin-icerik-kutusu {% if aktif_bolum == 'admin-anasayfa' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-hosgeldin-karti">
+                <h2>Ana Sayfa</h2>
+                <p>
+                    Yönetici panelinden sistemdeki hasta kayıtlarını, doktor bilgilerini,
+                    randevu süreçlerini ve bekleme listelerini takip edebilirsiniz.
+                </p>
+            </div>
+
+            <div class="admin-ozet-kartlar">
+                <button type="button" class="admin-ozet-kart admin-ozet-buton" onclick="adminIcerikGoster('hasta-yonetimi', null)">
+                    <div class="admin-ozet-icon">👤</div>
+                    <div>
+                        <h3>Toplam Hasta</h3>
+                        <p>{{ admin_hastalar|length }} kayıtlı hasta</p>
+                    </div>
+                </button>
+
+                <button type="button" class="admin-ozet-kart admin-ozet-buton" onclick="adminIcerikGoster('doktor-yonetimi', null)">
+                    <div class="admin-ozet-icon">🩺</div>
+                    <div>
+                        <h3>Toplam Doktor</h3>
+                        <p>{{ admin_doktorlar|length }} kayıtlı doktor</p>
+                    </div>
+                </button>
+
+                <button type="button" class="admin-ozet-kart admin-ozet-buton" onclick="adminIcerikGoster('randevu-yonetimi', null)">
+                    <div class="admin-ozet-icon">📅</div>
+                    <div>
+                        <h3>Aktif Randevu</h3>
+                        <p>{{ admin_aktif_randevu_sayisi }} aktif randevu</p>
+                    </div>
+                </button>
+
+                <button type="button" class="admin-ozet-kart admin-ozet-buton" onclick="adminIcerikGoster('bekleme-listesi', null)">
+                    <div class="admin-ozet-icon">⏳</div>
+                    <div>
+                        <h3>Bekleme Listesi</h3>
+                        <p>{{ admin_bekleme_kayitlari|length }} kayıt</p>
+                    </div>
+                </button>
+            </div>
+
+            <div class="admin-anasayfa-alt-grid">
+                <div class="admin-kucuk-kart">
+                    <h3>Randevu Özeti</h3>
+                    <p><strong>Aktif Randevu:</strong> {{ admin_aktif_randevu_sayisi }}</p>
+                    <p><strong>İptal Edilen:</strong> {{ admin_iptal_randevu_sayisi }}</p>
+                    <button type="button" class="admin-mini-btn" onclick="adminIcerikGoster('randevu-yonetimi', null)">
+                        Randevuları Gör
+                    </button>
+                </div>
+
+                <div class="admin-kucuk-kart">
+                    <h3>Son Randevular</h3>
+
+                    {% if admin_son_randevular %}
+                        {% for randevu in admin_son_randevular %}
+                            <p>{{ randevu.hasta }} - {{ randevu.doktor }} - {{ randevu.saat }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>Henüz randevu kaydı bulunmamaktadır.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section id="hasta-yonetimi" class="admin-icerik-kutusu {% if aktif_bolum == 'hasta-yonetimi' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-form-karti">
+
+                <div class="admin-bolum-baslik">
+                    <h2>Hasta Yönetimi</h2>
+                    <p>Mevcut hastalar adına yönetici tarafından randevu oluşturma alanı.</p>
+                </div>
+
+                <div class="admin-ust-islem-alani admin-tek-buton-alani">
+                    <button type="button" class="admin-ana-btn admin-kucuk-btn" onclick="adminFormAcKapat('hastaRandevuForm')">
+                        Randevu Oluştur
+                    </button>
+                </div>
+
+                <div class="admin-ekle-form-karti" id="hastaRandevuForm">
+                    <h3>Hasta İçin Randevu Oluştur</h3>
+
+                    <form 
+                        method="POST" 
+                        action="{{ url_for('admin_hasta_randevu_olustur') }}"
+                        id="adminHastaRandevuFormu"
+                        data-dolu-saatler-url="{{ url_for('dolu_saatler') }}">
+
+                        <div class="admin-form-grid">
+                            <div class="admin-form-kutu">
+                                <label>Hasta</label>
+                                <select name="hasta_id" required>
+                                    <option value="">Hasta seçiniz</option>
+
+                                    {% for hasta in admin_hastalar %}
+                                    <option value="{{ hasta.id }}">
+                                        {{ hasta.ad_soyad }} - {{ hasta.tc }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Poliklinik</label>
+                                <select name="poliklinik" id="adminPoliklinikSecimi" required>
+                                    <option value="">Poliklinik seçiniz</option>
+                                    <option value="Dahiliye">Dahiliye</option>
+                                    <option value="Kardiyoloji">Kardiyoloji</option>
+                                    <option value="Göz Hastalıkları">Göz Hastalıkları</option>
+                                    <option value="Ortopedi">Ortopedi</option>
+                                    <option value="Dermatoloji">Dermatoloji</option>
+                                </select>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Doktor</label>
+                                <select name="doktor" id="adminDoktorSecimi" required>
+                                    <option value="">Önce poliklinik seçiniz</option>
+                                    {% for doktor in admin_aktif_doktorlar %}
+                                        <option value="{{ doktor.doktor_adi }}" data-brans="{{ doktor.brans }}">
+                                            {{ doktor.doktor_adi }} - {{ doktor.brans }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Tarih</label>
+                                <input type="date" name="tarih" id="adminTarihSecimi" min="{{ bugun }}" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Saat</label>
+                                <select name="saat" id="adminSaatSecimi" required>
+                                    <option value="">Önce doktor ve tarih seçiniz</option>
+                                </select>
+                            </div>
+
+                            <div class="admin-form-kutu admin-form-tam">
+                                <label>Randevu Notu</label>
+                                <textarea 
+                                    name="hasta_notu" 
+                                    maxlength="500" 
+                                    placeholder="Hasta adına oluşturulan randevu için kısa açıklama yazabilirsiniz."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-buton-alani">
+                            <button type="button" class="admin-ikincil-btn" onclick="adminFormAcKapat('hastaRandevuForm')">
+                                Vazgeç
+                            </button>
+                            <button type="submit" class="admin-ana-btn">
+                                Randevuyu Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="admin-tablo-kapsayici">
+                    <table class="admin-tablo">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>T.C. Kimlik No</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for hasta in admin_hastalar %}
+                                <tr>
+                                    <td>{{ hasta.ad_soyad }}</td>
+                                    <td>{{ hasta.tc }}</td>
+                                    <td>{{ hasta.telefon }}</td>
+                                    <td>{{ hasta.email }}</td>
+                                    <td>
+                                        {% if hasta.durum == 'Aktif' %}
+                                            <span class="admin-durum admin-durum-aktif">Aktif</span>
+                                        {% else %}
+                                            <span class="admin-durum admin-durum-pasif">Pasif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button 
+                                            type="button" 
+                                            class="admin-mini-btn"
+                                            data-hasta="{{ hasta.ad_soyad }}"
+                                            data-tc="{{ hasta.tc }}"
+                                            data-telefon="{{ hasta.telefon }}"
+                                            data-email="{{ hasta.email }}"
+                                            data-dogum="{{ hasta.dogum_tarihi }}"
+                                            data-durum="{{ hasta.durum }}"
+                                            onclick="adminHastaDetayAc(this)">
+                                            Detay
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="doktor-yonetimi" class="admin-icerik-kutusu {% if aktif_bolum == 'doktor-yonetimi' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-form-karti">
+
+                <div class="admin-bolum-baslik">
+                    <h2>Doktor Yönetimi</h2>
+                    <p>Sistemde kayıtlı doktorları görüntüleme ve yeni doktor hesabı oluşturma alanı.</p>
+                </div>
+
+                <div class="admin-ust-islem-alani admin-tek-buton-alani">
+                    <button type="button" class="admin-ana-btn admin-kucuk-btn" onclick="adminFormAcKapat('doktorEkleForm')">
+                        Doktor Ekle
+                    </button>
+                </div>
+
+                <div class="admin-ekle-form-karti" id="doktorEkleForm">
+                    <h3>Yeni Doktor Ekle</h3>
+
+                    <form method="POST" action="{{ url_for('admin_doktor_ekle') }}">
+                        <div class="admin-form-grid">
+                            <div class="admin-form-kutu">
+                                <label>Doktor Adı</label>
+                                <input type="text" name="doktor_adi" placeholder="Dr. D" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Branş</label>
+                                <select name="brans" required>
+                                    <option value="">Branş seçiniz</option>
+                                    <option value="Dahiliye">Dahiliye</option>
+                                    <option value="Kardiyoloji">Kardiyoloji</option>
+                                    <option value="Göz Hastalıkları">Göz Hastalıkları</option>
+                                    <option value="Ortopedi">Ortopedi</option>
+                                    <option value="Dermatoloji">Dermatoloji</option>
+                                </select>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Telefon</label>
+                                <input type="text" name="telefon" maxlength="14" placeholder="0555 444 44 44" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>E-posta</label>
+                                <input type="email" name="email" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Geçici Şifre</label>
+                                <input type="password" name="sifre" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Çalışma Saatleri</label>
+                                <input type="text" name="calisma_saatleri" value="09:00 - 17:00" required>
+                            </div>
+
+                            <div class="admin-form-kutu">
+                                <label>Durum</label>
+                                <select name="durum">
+                                    <option value="Aktif" selected>Aktif</option>
+                                    <option value="Pasif">Pasif</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-buton-alani">
+                            <button type="button" class="admin-ikincil-btn" onclick="adminFormAcKapat('doktorEkleForm')">
+                                Vazgeç
+                            </button>
+                            <button type="submit" class="admin-ana-btn">
+                                Doktoru Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="admin-tablo-kapsayici">
+                    <table class="admin-tablo">
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>Branş</th>
+                                <th>Telefon</th>
+                                <th>E-posta</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for doktor in admin_doktorlar %}
+                                <tr>
+                                    <td>{{ doktor.doktor_adi }}</td>
+                                    <td>{{ doktor.brans }}</td>
+                                    <td>{{ doktor.telefon }}</td>
+                                    <td>{{ doktor.email }}</td>
+                                    <td>
+                                        {% if doktor.durum == 'Aktif' %}
+                                            <span class="admin-durum admin-durum-aktif">Aktif</span>
+                                        {% else %}
+                                            <span class="admin-durum admin-durum-pasif">Pasif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button 
+                                            type="button" 
+                                            class="admin-mini-btn"
+                                            data-doktor="{{ doktor.doktor_adi }}"
+                                            data-brans="{{ doktor.brans }}"
+                                            data-telefon="{{ doktor.telefon }}"
+                                            data-email="{{ doktor.email }}"
+                                            data-calisma="{{ doktor.calisma_saatleri }}"
+                                            data-durum="{{ doktor.durum }}"
+                                            onclick="adminDoktorDetayAc(this)">
+                                            Detay
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="randevu-yonetimi" class="admin-icerik-kutusu {% if aktif_bolum == 'randevu-yonetimi' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-form-karti">
+
+                <div class="admin-bolum-baslik">
+                    <h2>Randevu Yönetimi</h2>
+                    <p>Sistemdeki randevuları görüntüleme, detay inceleme ve takip etme alanı.</p>
+                </div>
+
+                <div class="admin-tablo-kapsayici">
+                    <table class="admin-tablo">
+                        <thead>
+                            <tr>
+                                <th>Hasta</th>
+                                <th>Doktor</th>
+                                <th>Poliklinik</th>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% if admin_randevular %}
+                                {% for randevu in admin_randevular %}
+                                    <tr>
+                                        <td>{{ randevu.hasta }}</td>
+                                        <td>{{ randevu.doktor }}</td>
+                                        <td>{{ randevu.poliklinik }}</td>
+                                        <td>{{ randevu.tarih }}</td>
+                                        <td>{{ randevu.saat }}</td>
+                                        <td>
+                                            {% if randevu.durum == 'Aktif' %}
+                                                <span class="admin-durum admin-durum-aktif">Aktif</span>
+                                            {% else %}
+                                                <span class="admin-durum admin-durum-iptal">İptal Edildi</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="admin-islem-btn-grup">
+                                                <button
+                                                    type="button"
+                                                    class="admin-mini-btn"
+                                                    data-hasta="{{ randevu.hasta }}"
+                                                    data-hasta-tc="{{ randevu.hasta_tc }}"
+                                                    data-hasta-telefon="{{ randevu.hasta_telefon }}"
+                                                    data-hasta-email="{{ randevu.hasta_email }}"
+                                                    data-hasta-dogum="{{ randevu.hasta_dogum_tarihi }}"
+                                                    data-doktor="{{ randevu.doktor }}"
+                                                    data-poliklinik="{{ randevu.poliklinik }}"
+                                                    data-tarih="{{ randevu.tarih }}"
+                                                    data-saat="{{ randevu.saat }}"
+                                                    data-durum="{{ randevu.durum }}"
+                                                    data-hasta-notu="{{ randevu.hasta_notu }}"
+                                                    data-doktor-notu="{{ randevu.doktor_notu }}"
+                                                    onclick="adminRandevuDetayAc(this)">
+                                                    Detay
+                                                </button>
+
+                                                {% if randevu.durum == 'Aktif' %}
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ url_for('admin_randevu_iptal', randevu_id=randevu.id) }}"
+                                                        class="admin-islem-form"
+                                                        onsubmit="return adminOnayGoster(this, 'Bu randevuyu iptal etmek istediğinize emin misiniz?', 'Randevu İptal Onayı');">
+                                                        <button type="submit" class="admin-mini-btn admin-mini-danger">
+                                                            İptal
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">Henüz randevu kaydı bulunmamaktadır.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="bekleme-listesi" class="admin-icerik-kutusu {% if aktif_bolum == 'bekleme-listesi' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-form-karti">
+
+                <div class="admin-bolum-baslik">
+                    <h2>Bekleme Listesi</h2>
+                    <p>Bekleme listesine alınan hastaları görüntüleme, detay inceleme ve takip etme alanı.</p>
+                </div>
+
+                <div class="admin-tablo-kapsayici">
+                    <table class="admin-tablo">
+                        <thead>
+                            <tr>
+                                <th>Hasta</th>
+                                <th>Doktor</th>
+                                <th>Poliklinik</th>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Bekleme Durumu</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% if admin_bekleme_kayitlari %}
+                                {% for kayit in admin_bekleme_kayitlari %}
+                                    <tr>
+                                        <td>{{ kayit.hasta }}</td>
+                                        <td>{{ kayit.doktor }}</td>
+                                        <td>{{ kayit.poliklinik }}</td>
+                                        <td>{{ kayit.tarih }}</td>
+                                        <td>{{ kayit.saat }}</td>
+                                        <td>
+                                            {% if kayit.durum == 'Beklemede' %}
+                                                <span class="admin-durum admin-durum-bekleme">Beklemede</span>
+                                            {% else %}
+                                                <span class="admin-durum admin-durum-pasif">{{ kayit.durum }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="admin-islem-btn-grup">
+                                                <button
+                                                    type="button"
+                                                    class="admin-mini-btn"
+                                                    data-hasta="{{ kayit.hasta }}"
+                                                    data-hasta-tc="{{ kayit.hasta_tc }}"
+                                                    data-hasta-telefon="{{ kayit.hasta_telefon }}"
+                                                    data-hasta-email="{{ kayit.hasta_email }}"
+                                                    data-hasta-dogum="{{ kayit.hasta_dogum_tarihi }}"
+                                                    data-doktor="{{ kayit.doktor }}"
+                                                    data-poliklinik="{{ kayit.poliklinik }}"
+                                                    data-tarih="{{ kayit.tarih }}"
+                                                    data-saat="{{ kayit.saat }}"
+                                                    data-durum="{{ kayit.durum }}"
+                                                    onclick="adminBeklemeDetayAc(this)">
+                                                    Detay
+                                                </button>
+
+                                                {% if kayit.durum == 'Beklemede' %}
+                                                    <form
+                                                        method="POST"
+                                                        action="{{ url_for('admin_bekleme_kayit_kaldir', kayit_id=kayit.id) }}"
+                                                        class="admin-islem-form"
+                                                        onsubmit="return adminOnayGoster(this, 'Bu bekleme listesi kaydını kaldırmak istediğinize emin misiniz?', 'Bekleme Listesi Onayı');">
+                                                        <button type="submit" class="admin-mini-btn admin-mini-danger">
+                                                            Kaldır
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">Henüz bekleme listesi kaydı bulunmamaktadır.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="yogunluk-raporlari" class="admin-icerik-kutusu {% if aktif_bolum == 'yogunluk-raporlari' %}admin-aktif-icerik{% endif %}">
+            <div class="admin-form-karti">
+
+                <div class="admin-bolum-baslik">
+                    <h2>Yoğunluk Raporları</h2>
+                    <p>Seçilen tarihe göre polikliniklerin aktif randevu yoğunluğunu görüntüleme alanı.</p>
+                </div>
+
+                <form method="GET" action="{{ url_for('admin_panel') }}" class="admin-panel-form admin-yogunluk-filtre-form">
+                    <input type="hidden" name="bolum" value="yogunluk-raporlari">
+
+                    <div class="admin-form-grid admin-yogunluk-filtre-grid">
+                        <div class="admin-form-kutu admin-yogunluk-tarih-kutu">
+                            <label>Yoğunluk Tarihi</label>
+                            <input type="date" name="yogunluk_tarihi" value="{{ admin_yogunluk_tarihi }}" required>
+                        </div>
+                    </div>
+
+                    <div class="admin-form-buton-alani admin-yogunluk-buton-alani">
+                        <button type="submit" class="admin-ana-btn">
+                            Yoğunluğu Göster
+                        </button>
+                    </div>
+                </form>
+
+                <div class="admin-secili-tarih-bilgi">
+                    <strong>Seçilen Tarih:</strong> {{ admin_yogunluk_tarihi_goster }}
+                </div>
+
+                <div class="admin-rapor-kartlari">
+                    {% for rapor in admin_yogunluk_raporlari %}
+                        <div class="admin-rapor-kart">
+                            <div class="admin-rapor-ust">
+                                <h3>{{ rapor.poliklinik }}</h3>
+
+                                <span class="admin-yogunluk {{ rapor.yogunluk_class }}">
+                                    {{ rapor.yogunluk }}
+                                </span>
+                            </div>
+
+                            <p>{{ rapor.aciklama }}</p>
+
+                            <p>
+                                <strong>Aktif Randevu Sayısı:</strong>
+                                {{ rapor.aktif_randevu_sayisi }}
+                            </p>
+
+                            <div class="admin-rapor-cubuk {{ rapor.cubuk_class }}">
+                                <span></span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+</div>
+
+<div class="admin-detay-modal-arkaplan" id="adminDetayModal">
+    <div class="admin-detay-modal">
+        <div class="admin-detay-modal-baslik">
+            <h3 id="adminDetayBaslik">Detay</h3>
+            <button type="button" onclick="adminDetayKapat()">×</button>
+        </div>
+
+        <div class="admin-detay-modal-icerik" id="adminDetayIcerik"></div>
+    </div>
+</div>
+
+<div class="admin-onay-arkaplan" id="adminOnayKutusu">
+    <div class="admin-onay-kutu">
+        <div class="admin-onay-ikon">!</div>
+
+        <h3 id="adminOnayBaslik">İşlem Onayı</h3>
+        <p id="adminOnayMetni"></p>
+
+        <div class="admin-onay-butonlar">
+            <button type="button" class="admin-onay-vazgec" onclick="adminOnayKapat()">
+                Vazgeç
+            </button>
+
+            <button type="button" class="admin-onay-devam" onclick="adminOnayla()">
+                Evet, Devam Et
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let adminOnayFormu = null;
+
+function adminMenuAcKapat() {
+    document.getElementById("adminPanel").classList.toggle("admin-menu-kapali");
+}
+
+function adminProfilMenuAcKapat() {
+    document.getElementById("adminProfilMenu").classList.toggle("admin-profil-menu-aktif");
+}
+
+function adminFormAcKapat(formId) {
+    document.getElementById(formId).classList.toggle("admin-form-acik");
+}
+
+function adminMetinGuvenli(metin) {
+    const div = document.createElement("div");
+    div.textContent = metin || "Belirtilmedi";
+    return div.innerHTML;
+}
+
+function adminHastaDetayAc(buton) {
+    document.getElementById("adminDetayBaslik").textContent = "Hasta Detayı";
+
+    document.getElementById("adminDetayIcerik").innerHTML = `
+        <p><strong>Hasta:</strong> ${adminMetinGuvenli(buton.dataset.hasta)}</p>
+        <p><strong>T.C. Kimlik No:</strong> ${adminMetinGuvenli(buton.dataset.tc)}</p>
+        <p><strong>Telefon:</strong> ${adminMetinGuvenli(buton.dataset.telefon)}</p>
+        <p><strong>E-posta:</strong> ${adminMetinGuvenli(buton.dataset.email)}</p>
+        <p><strong>Doğum Tarihi:</strong> ${adminMetinGuvenli(buton.dataset.dogum)}</p>
+        <p><strong>Durum:</strong> ${adminMetinGuvenli(buton.dataset.durum)}</p>
+    `;
+
+    document.getElementById("adminDetayModal").classList.add("admin-detay-modal-aktif");
+}
+
+function adminDoktorDetayAc(buton) {
+    document.getElementById("adminDetayBaslik").textContent = "Doktor Detayı";
+
+    document.getElementById("adminDetayIcerik").innerHTML = `
+        <p><strong>Doktor:</strong> ${adminMetinGuvenli(buton.dataset.doktor)}</p>
+        <p><strong>Branş:</strong> ${adminMetinGuvenli(buton.dataset.brans)}</p>
+        <p><strong>Telefon:</strong> ${adminMetinGuvenli(buton.dataset.telefon)}</p>
+        <p><strong>E-posta:</strong> ${adminMetinGuvenli(buton.dataset.email)}</p>
+        <p><strong>Çalışma Saatleri:</strong> ${adminMetinGuvenli(buton.dataset.calisma)}</p>
+        <p><strong>Durum:</strong> ${adminMetinGuvenli(buton.dataset.durum)}</p>
+    `;
+
+    document.getElementById("adminDetayModal").classList.add("admin-detay-modal-aktif");
+}
+
+function adminRandevuDetayAc(buton) {
+    document.getElementById("adminDetayBaslik").textContent = "Randevu Detayı";
+
+    document.getElementById("adminDetayIcerik").innerHTML = `
+        <p><strong>Hasta:</strong> ${adminMetinGuvenli(buton.dataset.hasta)}</p>
+        <p><strong>T.C. Kimlik No:</strong> ${adminMetinGuvenli(buton.dataset.hastaTc)}</p>
+        <p><strong>Telefon:</strong> ${adminMetinGuvenli(buton.dataset.hastaTelefon)}</p>
+        <p><strong>E-posta:</strong> ${adminMetinGuvenli(buton.dataset.hastaEmail)}</p>
+        <p><strong>Doğum Tarihi:</strong> ${adminMetinGuvenli(buton.dataset.hastaDogum)}</p>
+
+        <hr>
+
+        <p><strong>Doktor:</strong> ${adminMetinGuvenli(buton.dataset.doktor)}</p>
+        <p><strong>Poliklinik:</strong> ${adminMetinGuvenli(buton.dataset.poliklinik)}</p>
+        <p><strong>Tarih:</strong> ${adminMetinGuvenli(buton.dataset.tarih)}</p>
+        <p><strong>Saat:</strong> ${adminMetinGuvenli(buton.dataset.saat)}</p>
+        <p><strong>Durum:</strong> ${adminMetinGuvenli(buton.dataset.durum)}</p>
+
+        <hr>
+
+        <p><strong>Hasta Notu:</strong> ${adminMetinGuvenli(buton.dataset.hastaNotu)}</p>
+        <p><strong>Doktor Notu:</strong> ${adminMetinGuvenli(buton.dataset.doktorNotu)}</p>
+    `;
+
+    document.getElementById("adminDetayModal").classList.add("admin-detay-modal-aktif");
+}
+
+function adminBeklemeDetayAc(buton) {
+    document.getElementById("adminDetayBaslik").textContent = "Bekleme Listesi Detayı";
+
+    document.getElementById("adminDetayIcerik").innerHTML = `
+        <p><strong>Hasta:</strong> ${adminMetinGuvenli(buton.dataset.hasta)}</p>
+        <p><strong>T.C. Kimlik No:</strong> ${adminMetinGuvenli(buton.dataset.hastaTc)}</p>
+        <p><strong>Telefon:</strong> ${adminMetinGuvenli(buton.dataset.hastaTelefon)}</p>
+        <p><strong>E-posta:</strong> ${adminMetinGuvenli(buton.dataset.hastaEmail)}</p>
+        <p><strong>Doğum Tarihi:</strong> ${adminMetinGuvenli(buton.dataset.hastaDogum)}</p>
+
+        <hr>
+
+        <p><strong>Doktor:</strong> ${adminMetinGuvenli(buton.dataset.doktor)}</p>
+        <p><strong>Poliklinik:</strong> ${adminMetinGuvenli(buton.dataset.poliklinik)}</p>
+        <p><strong>Tarih:</strong> ${adminMetinGuvenli(buton.dataset.tarih)}</p>
+        <p><strong>Saat:</strong> ${adminMetinGuvenli(buton.dataset.saat)}</p>
+        <p><strong>Durum:</strong> ${adminMetinGuvenli(buton.dataset.durum)}</p>
+    `;
+
+    document.getElementById("adminDetayModal").classList.add("admin-detay-modal-aktif");
+}
+
+function adminDetayKapat() {
+    document.getElementById("adminDetayModal").classList.remove("admin-detay-modal-aktif");
+}
+
+function adminOnayGoster(form, mesaj, baslik) {
+    adminOnayFormu = form;
+
+    document.getElementById("adminOnayBaslik").textContent = baslik;
+    document.getElementById("adminOnayMetni").textContent = mesaj;
+
+    document.getElementById("adminOnayKutusu").classList.add("admin-onay-aktif");
+
+    return false;
+}
+
+function adminOnayKapat() {
+    adminOnayFormu = null;
+    document.getElementById("adminOnayKutusu").classList.remove("admin-onay-aktif");
+}
+
+function adminOnayla() {
+    if (adminOnayFormu) {
+        adminOnayFormu.submit();
+    }
+}
+
+function adminDoktorlariBransaGoreFiltrele() {
+    const poliklinikSecimi = document.getElementById("adminPoliklinikSecimi");
+    const doktorSecimi = document.getElementById("adminDoktorSecimi");
+
+    if (!poliklinikSecimi || !doktorSecimi) {
+        return;
+    }
+
+    const seciliBrans = poliklinikSecimi.value;
+    const ilkOption = doktorSecimi.options[0];
+    let uygunDoktorSayisi = 0;
+
+    doktorSecimi.value = "";
+
+    if (!seciliBrans) {
+        ilkOption.textContent = "Önce poliklinik seçiniz";
+
+        Array.from(doktorSecimi.options).forEach(function(option) {
+            if (option.value !== "") {
+                option.hidden = true;
+                option.disabled = true;
+            }
+        });
+
+        adminDoluSaatleriKontrolEt();
+        return;
+    }
+
+    Array.from(doktorSecimi.options).forEach(function(option) {
+        if (option.value === "") {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+
+        const uygunMu = option.dataset.brans === seciliBrans;
+
+        option.hidden = !uygunMu;
+        option.disabled = !uygunMu;
+
+        if (uygunMu) {
+            uygunDoktorSayisi += 1;
+        }
+    });
+
+    if (uygunDoktorSayisi === 0) {
+        ilkOption.textContent = "Bu poliklinikte aktif doktor bulunmuyor";
+        ilkOption.disabled = true;
+    } else {
+        ilkOption.textContent = "Doktor seçiniz";
+        ilkOption.disabled = false;
+    }
+
+    adminDoluSaatleriKontrolEt();
+}
+
+function adminDoluSaatleriKontrolEt() {
+    const randevuFormu = document.getElementById("adminHastaRandevuFormu");
+    const doktorSecimi = document.getElementById("adminDoktorSecimi");
+    const tarihSecimi = document.getElementById("adminTarihSecimi");
+    const saatSecimi = document.getElementById("adminSaatSecimi");
+
+    if (!randevuFormu || !doktorSecimi || !tarihSecimi || !saatSecimi) {
+        return;
+    }
+
+    const doktor = doktorSecimi.value;
+    const tarih = tarihSecimi.value;
+
+
+    saatSecimi.innerHTML = "";
+
+    if (!doktor || !tarih) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Önce doktor ve tarih seçiniz";
+        option.disabled = true;
+        option.selected = true;
+        saatSecimi.appendChild(option);
+        return;
+    }
+
+    const yukleniyorOption = document.createElement("option");
+    yukleniyorOption.value = "";
+    yukleniyorOption.textContent = "Dolu saatler kontrol ediliyor...";
+    yukleniyorOption.disabled = true;
+    yukleniyorOption.selected = true;
+    saatSecimi.appendChild(yukleniyorOption);
+
+    const url = randevuFormu.dataset.doluSaatlerUrl +
+        "?doktor=" + encodeURIComponent(doktor) +
+        "&tarih=" + encodeURIComponent(tarih);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const doluSaatler = data.dolu_saatler || [];
+            const uygunSaatler = data.uygun_saatler || [];  
+            saatSecimi.innerHTML = "";
+
+            const ilkOption = document.createElement("option");
+            ilkOption.value = "";
+            ilkOption.textContent = "Saat seçiniz";
+            saatSecimi.appendChild(ilkOption);
+
+            uygunSaatler.forEach(function(saat) {
+                const option = document.createElement("option");
+                option.value = saat;
+
+                if (doluSaatler.includes(saat)) {
+                    option.textContent = saat + " - Dolu";
+                    option.disabled = true;
+                } else {
+                    option.textContent = saat;
+                }
+
+                saatSecimi.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.log("Admin dolu saatleri alınırken hata oluştu:", error);
+
+            saatSecimi.innerHTML = "";
+
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Saatler alınamadı";
+            option.disabled = true;
+            option.selected = true;
+            saatSecimi.appendChild(option);
+        });
+}
+
+function adminIcerikGoster(id, buton) {
+    const basliklar = {
+        "admin-anasayfa": "Ana Sayfa",
+        "hasta-yonetimi": "Hasta Yönetimi",
+        "doktor-yonetimi": "Doktor Yönetimi",
+        "randevu-yonetimi": "Randevu Yönetimi",
+        "bekleme-listesi": "Bekleme Listesi",
+        "yogunluk-raporlari": "Yoğunluk Raporları"
+    };
+
+    if (!basliklar[id] || !document.getElementById(id)) {
+        id = "admin-anasayfa";
+    }
+
+    const icerikler = document.querySelectorAll(".admin-icerik-kutusu");
+    const butonlar = document.querySelectorAll(".admin-menu-btn");
+
+    icerikler.forEach(function(icerik) {
+        icerik.classList.remove("admin-aktif-icerik");
+    });
+
+    butonlar.forEach(function(btn) {
+        btn.classList.remove("aktif");
+    });
+
+    document.getElementById(id).classList.add("admin-aktif-icerik");
+
+    if (buton !== null && buton !== undefined) {
+        buton.classList.add("aktif");
+    } else {
+        const ilgiliButon = document.querySelector('[data-bolum="' + id + '"]');
+
+        if (ilgiliButon) {
+            ilgiliButon.classList.add("aktif");
+        }
+    }
+
+    document.getElementById("adminSayfaBaslik").textContent = basliklar[id];
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const adminPanel = document.getElementById("adminPanel");
+    const aktifBolum = adminPanel.dataset.aktifBolum || "admin-anasayfa";
+
+    adminIcerikGoster(aktifBolum, null);
+
+    const adminPoliklinikSecimi = document.getElementById("adminPoliklinikSecimi");
+    const adminDoktorSecimi = document.getElementById("adminDoktorSecimi");
+    const adminTarihSecimi = document.getElementById("adminTarihSecimi");
+
+    if (adminPoliklinikSecimi && adminDoktorSecimi) {
+        adminDoktorlariBransaGoreFiltrele();
+
+        adminPoliklinikSecimi.addEventListener("change", adminDoktorlariBransaGoreFiltrele);
+    }
+
+    if (adminDoktorSecimi && adminTarihSecimi) {
+        adminDoktorSecimi.addEventListener("change", adminDoluSaatleriKontrolEt);
+        adminTarihSecimi.addEventListener("change", adminDoluSaatleriKontrolEt);
+    }
+
+    const flashMesajlar = document.querySelectorAll(".admin-flash");
+
+    flashMesajlar.forEach(function(mesaj) {
+        setTimeout(function() {
+            mesaj.classList.add("admin-flash-kapanis");
+
+            setTimeout(function() {
+                mesaj.remove();
+            }, 300);
+        }, 3000);
+    });
+});
+</script>
+
+</body>
+</html>

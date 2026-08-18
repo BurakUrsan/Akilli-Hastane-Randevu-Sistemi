@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Şifremi Unuttum</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='kayit.css') }}">
+</head>
+<body>
+
+<div class="tek-kart-sayfa">
+    <div class="container sifremi-unuttum-karti">
+        <h1>Şifremi Unuttum</h1>
+
+        <p class="bilgi-metni">
+            Kayıtlı e-posta adresinizi girerek şifre sıfırlama işlemini başlatabilirsiniz.
+        </p>
+
+        {% if hata %}
+            <p class="hata">{{ hata }}</p>
+        {% endif %}
+
+        {% if basari %}
+            <p class="basari">{{ basari }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <label for="email">E-posta</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="E-posta adresinizi giriniz"
+                value="{{ form_data.get('email', '') }}"
+                required>
+
+            <button type="submit">Şifre Sıfırlama Bağlantısı Gönder</button>
+        </form>
+
+        <p><a href="/giris">Giriş ekranına dön</a></p>
+    </div>
+</div>
+
+</body>
+</html>

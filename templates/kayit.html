@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hasta Kayıt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='kayit.css') }}">
+</head>
+<body>
+
+<div class="tek-kart-sayfa">
+    <div class="container">
+        <h1>Hasta Kayıt Ekranı</h1>
+
+        {% if hata %}
+            <p class="hata">{{ hata }}</p>
+        {% endif %}
+
+        {% if basari %}
+            <p class="basari">{{ basari }}</p>
+        {% endif %}
+
+        <form method="POST" onsubmit="return kayitKontrolEt()">
+            <label for="tc_kimlik">TC Kimlik Numarası</label>
+            <input
+                type="text"
+                id="tc_kimlik"
+                name="tc"
+                placeholder="TC kimlik numaranızı giriniz"
+                maxlength="11"
+                value="{{ form_data.get('tc', '') }}"
+                required>
+
+            <div class="form-satiri">
+                <div class="form-grup">
+                    <label for="ad">Ad</label>
+                    <input
+                        type="text"
+                        id="ad"
+                        name="ad"
+                        placeholder="Adınızı giriniz"
+                        value="{{ form_data.get('ad', '') }}"
+                        required>
+                </div>
+
+                <div class="form-grup">
+                    <label for="soyad">Soyad</label>
+                    <input
+                        type="text"
+                        id="soyad"
+                        name="soyad"
+                        placeholder="Soyadınızı giriniz"
+                        value="{{ form_data.get('soyad', '') }}"
+                        required>
+                </div>
+            </div>
+
+            <label for="dogum_tarihi">Doğum Tarihi</label>
+            <input
+                type="date"
+                id="dogum_tarihi"
+                name="dogum_tarihi"
+                value="{{ form_data.get('dogum_tarihi', '') }}"
+                required>
+
+            <label for="email">E-posta</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="E-posta adresinizi giriniz"
+                value="{{ form_data.get('email', '') }}"
+                required>
+
+            <label for="telefon">Telefon</label>
+            <input
+                type="text"
+                id="telefon"
+                name="telefon"
+                placeholder="555 555 55 55"
+                maxlength="14"
+                value="{{ form_data.get('telefon', '') }}"
+                oninput="telefonFormatla(this)"
+                required>
+
+            <label for="kayit_sifre">Şifre</label>
+            <div class="sifre-kutusu">
+                <input
+                    type="password"
+                    id="kayit_sifre"
+                    name="sifre"
+                    placeholder="Şifrenizi giriniz"
+                    oninput="sifreKurallariniKontrolEt()"
+                    required>
+
+                <button
+                    type="button"
+                    class="sifre-goz"
+                    onclick="kayitSifreGosterGizle('kayit_sifre', 'kayit_ikon_goster', 'kayit_ikon_gizle')">
+
+                    <svg
+                        id="kayit_ikon_goster"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+
+                    <svg
+                        id="kayit_ikon_gizle"
+                        class="ikon-gizli"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C5.5 20 2 12 2 12a20.29 20.29 0 0 1 5.06-5.94"></path>
+                        <path d="M9.9 4.24A10.64 10.64 0 0 1 12 4c6.5 0 10 8 10 8a20.72 20.72 0 0 1-2.16 3.19"></path>
+                        <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="sifre-kurallari">
+                <p id="kural_uzunluk">• En az 8 karakter</p>
+                <p id="kural_buyuk">• En az 1 büyük harf</p>
+                <p id="kural_kucuk">• En az 1 küçük harf</p>
+                <p id="kural_rakam">• En az 1 rakam</p>
+                <p id="kural_sembol">• En az 1 sembol</p>
+            </div>
+
+            <div class="onay-alani">
+                <label class="onay-satiri">
+                    <input
+                        type="checkbox"
+                        id="kvkk_onay"
+                        name="kvkk_onay"
+                        {% if form_data.get('kvkk_onay') %}checked{% endif %}>
+                    <span>Kişisel verilerimin KVKK kapsamında işlenmesine ilişkin bilgilendirmeyi okudum ve kabul ediyorum.</span>
+                </label>
+
+                <label class="onay-satiri">
+                    <input
+                        type="checkbox"
+                        id="uyelik_onay"
+                        name="uyelik_onay"
+                        {% if form_data.get('uyelik_onay') %}checked{% endif %}>
+                    <span>Üyelik ve kullanım şartlarını kabul ediyorum.</span>
+                </label>
+            </div>
+
+            <button type="submit">Kayıt Ol</button>
+        </form>
+
+        <p><a href="/giris">Giriş ekranına dön</a></p>
+    </div>
+</div>
+
+<script>
+    function telefonFormatla(input) {
+        let rakamlar = input.value.replace(/\D/g, "");
+
+        if (rakamlar.length > 11) {
+            rakamlar = rakamlar.slice(0, 11);
+        }
+
+        let formatliTelefon = "";
+
+        if (rakamlar.startsWith("0")) {
+            if (rakamlar.length <= 4) {
+                formatliTelefon = rakamlar;
+            } else if (rakamlar.length <= 7) {
+                formatliTelefon = rakamlar.slice(0, 4) + " " + rakamlar.slice(4);
+            } else if (rakamlar.length <= 9) {
+                formatliTelefon = rakamlar.slice(0, 4) + " " + rakamlar.slice(4, 7) + " " + rakamlar.slice(7);
+            } else {
+                formatliTelefon = rakamlar.slice(0, 4) + " " + rakamlar.slice(4, 7) + " " + rakamlar.slice(7, 9) + " " + rakamlar.slice(9, 11);
+            }
+        } else {
+            if (rakamlar.length <= 3) {
+                formatliTelefon = rakamlar;
+            } else if (rakamlar.length <= 6) {
+                formatliTelefon = rakamlar.slice(0, 3) + " " + rakamlar.slice(3);
+            } else if (rakamlar.length <= 8) {
+                formatliTelefon = rakamlar.slice(0, 3) + " " + rakamlar.slice(3, 6) + " " + rakamlar.slice(6);
+            } else {
+                formatliTelefon = rakamlar.slice(0, 3) + " " + rakamlar.slice(3, 6) + " " + rakamlar.slice(6, 8) + " " + rakamlar.slice(8, 10);
+            }
+        }
+
+        input.value = formatliTelefon;
+    }
+
+    function kayitSifreGosterGizle(inputId, gosterId, gizleId) {
+        const sifreInput = document.getElementById(inputId);
+        const ikonGoster = document.getElementById(gosterId);
+        const ikonGizle = document.getElementById(gizleId);
+
+        if (sifreInput.type === "password") {
+            sifreInput.type = "text";
+            ikonGoster.classList.add("ikon-gizli");
+            ikonGizle.classList.remove("ikon-gizli");
+        } else {
+            sifreInput.type = "password";
+            ikonGoster.classList.remove("ikon-gizli");
+            ikonGizle.classList.add("ikon-gizli");
+        }
+    }
+
+    function kuralDurumuGuncelle(id, durum) {
+        const eleman = document.getElementById(id);
+
+        if (durum) {
+            eleman.classList.add("kural-gecerli");
+        } else {
+            eleman.classList.remove("kural-gecerli");
+        }
+    }
+
+    function sifreKurallariniKontrolEt() {
+        const sifre = document.getElementById("kayit_sifre").value;
+
+        const uzunluk = sifre.length >= 8;
+        const buyuk = /[A-ZÇĞİÖŞÜ]/.test(sifre);
+        const kucuk = /[a-zçğıöşü]/.test(sifre);
+        const rakam = /[0-9]/.test(sifre);
+        const sembol = /[^A-Za-zÇĞİÖŞÜçğıöşü0-9]/.test(sifre);
+
+        kuralDurumuGuncelle("kural_uzunluk", uzunluk);
+        kuralDurumuGuncelle("kural_buyuk", buyuk);
+        kuralDurumuGuncelle("kural_kucuk", kucuk);
+        kuralDurumuGuncelle("kural_rakam", rakam);
+        kuralDurumuGuncelle("kural_sembol", sembol);
+
+        return uzunluk && buyuk && kucuk && rakam && sembol;
+    }
+
+    function kayitKontrolEt() {
+        const tcKimlik = document.getElementById("tc_kimlik").value.trim();
+        const telefon = document.getElementById("telefon").value.replace(/\D/g, "");
+        const kvkkOnay = document.getElementById("kvkk_onay").checked;
+        const uyelikOnay = document.getElementById("uyelik_onay").checked;
+
+        const tcRegex = /^[0-9]{11}$/;
+
+        if (!tcRegex.test(tcKimlik)) {
+            alert("TC Kimlik Numaranız 11 haneli olmalıdır.");
+            return false;
+        }
+
+        if (!(telefon.length === 10 || telefon.length === 11)) {
+            alert("Telefon numarası 10 veya 11 haneli olmalıdır.");
+            return false;
+        }
+
+        if (!sifreKurallariniKontrolEt()) {
+            alert("Şifre en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve sembol içermelidir.");
+            return false;
+        }
+
+        if (!kvkkOnay || !uyelikOnay) {
+            alert("KVKK onayı ve kullanım şartları kabul edilmelidir.");
+            return false;
+        }
+
+        return true;
+    }
+
+    window.onload = function() {
+        sifreKurallariniKontrolEt();
+
+        const telefonInput = document.getElementById("telefon");
+        telefonFormatla(telefonInput);
+    };
+</script>
+
+</body>
+</html>
