@@ -6,7 +6,7 @@ Bu proje bilgisayar mühendisliği staj çalışması kapsamında Python, Flask 
 
 ---
 
-## Kullanılan Teknolojiler
+## Kullanılan Teknolojiler ve Kütüphaneler
 
 - Python
 - Flask
@@ -360,7 +360,7 @@ Projede aşağıdaki güvenlik kontrolleri uygulanmıştır:
 - Aynı randevu saatinin birden fazla hastaya verilmesinin engellenmesi
 - E-posta ve kullanıcı girişlerinin backend tarafında doğrulanması
 - SMTP bağlantısında SSL veya STARTTLS kullanılması
-- Flask debug modunun final sürümünde kapalı tutulması
+- Flask debug modunun son sürümde kapalı tutulması
 
 ---
 
