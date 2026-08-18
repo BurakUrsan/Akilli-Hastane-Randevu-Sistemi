@@ -378,5 +378,3 @@ SMTP bilgileri tanımlanmadığında e-posta gerektirmeyen temel sistem özellik
 
 Nevşehir Hacı Bektaş Veli Üniversitesi  
 Bilgisayar Mühendisliği
-
-Akıllı Hastane Randevu Sistemi, bilgisayar mühendisliği staj çalışması kapsamında geliştirilmiştir.
